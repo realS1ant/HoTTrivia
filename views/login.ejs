@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login - SLUH Trivia</title>
+    <%- include('./partials/head.ejs') %>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+        <!-- Bulma Version 0.7.1-->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <style media="screen">
+            html,
+            body {
+                font-family: 'Open Sans', serif;
+                font-size: 14px;
+                font-weight: 300;
+            }
+
+            .hero.is-success {
+                background-image: linear-gradient(141deg, #04a6d7 0, #209cee 71%, #3287f5 100%);
+            }
+
+            .hero .nav,
+            .hero.is-success .nav {
+                -webkit-box-shadow: none;
+                box-shadow: none;
+            }
+
+            .avatar {
+                margin-top: -70px;
+                padding-bottom: 20px;
+            }
+
+            .avatar img {
+                padding: 5px;
+                background: #fff;
+                border-radius: 50%;
+                -webkit-box-shadow: 0 2px 3px rgba(10, 10, 10, .1), 0 0 0 1px rgba(10, 10, 10, .1);
+                box-shadow: 0 2px 3px rgba(10, 10, 10, .1), 0 0 0 1px rgba(10, 10, 10, .1);
+            }
+
+            input {
+                font-weight: 300;
+            }
+
+            p {
+                font-weight: 700;
+            }
+
+            p.subtitle {
+                padding-top: 1rem;
+            }
+
+            input.login-error,
+            input.login-error:hover,
+            input.login-error:focus,
+            input.login-error:active {
+                border-color: red;
+            }
+        </style>
+</head>
+
+<body>
+    <section class="hero is-success is-fullheight">
+        <div class="hero-body">
+            <div class="container has-text-centered">
+                <div class="column is-4 is-offset-4">
+                    <h1 class="title has-text-white" style="font-size: 3rem;">SLUH Trivia</h1>
+                    <!-- <h3 class="title has-text-white">Login</h3> -->
+                    <div class="box">
+                        <section id="login-error-message"></section>
+                        <div class="field">
+                            <div class="control has-icons-left">
+                                <input id="name-input" class="input is-large" type="name" placeholder="Display Name">
+                                <span class="icon is-small is-left"><i class="fa fa-lock"></i></span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <div class="control has-icons-left">
+                                <input id="email-input" class="input is-large" type="email" placeholder="Email"
+                                    autofocus="">
+                                <span class="icon is-small is-left"><i class="fa fa-envelope"></i></span>
+                            </div>
+                        </div>
+                        <!-- <div class="field">
+                                <label class="checkbox">
+                  <input type="checkbox">
+                  Remember me
+                </label>
+                            </div> -->
+                        <button id="login-button" class="button is-block is-info is-large is-fullwidth">Login</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script type="text/javascript">
+        function validateEmail(email) {
+            var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(email);
+        }
+        function loginAction() {
+            // First check for all fields filled in
+            if (document.getElementById('email-input').value.length > 0 || document.getElementById('name-input').value.length > 0) {
+                if (validateEmail(document.getElementById('email-input').value)) {
+                    if (document.getElementById('name-input').value.length > 0) {
+                        // Fields are good
+                        axios.post('/api/v1/auth', {
+                            email: document.getElementById('email-input').value,
+                            name: document.getElementById('name-input').value
+                        }).then(function (response) {
+                            if (response.data.success) {
+                                if (response.data.loggedIn) {
+                                    window.location = response.data.redirectTo;
+                                } else {
+                                    document.getElementById('email-input').classList.add('login-error');
+                                    document.getElementById('name-input').classList.add('login-error');
+                                    document.getElementById('login-error-message').innerHTML = "<div style=\" margin-top: -10px; margin-bottom: 8px; font-size: 1.5rem; \"><span style=\"color: red; text-align: center; font-weight: 400; \">Incorrect email.</span></div>";
+                                }
+                            } else {
+                                // Internal server error
+                                document.getElementById('email-input').classList.remove('login-error');
+                                document.getElementById('name-input').classList.remove('login-error');
+                                document.getElementById('login-error-message').innerHTML = "<div style=\" margin-top: -10px; margin-bottom: 8px; font-size: 1.5rem; \"><span style=\"color: red; text-align: center; font-weight: 400; \">Server error, try again</span></div>";
+                            }
+                        }).catch(function (err) {
+                            console.error(err);
+                        });
+                    } else {
+                        // Bad password input
+                        document.getElementById('email-input').classList.remove('login-error');
+                        document.getElementById('name-input').classList.add('login-error');
+                        document.getElementById('login-error-message').innerHTML = "<div style=\" margin-top: -10px; margin-bottom: 8px; font-size: 1.5rem; \"><span style=\"color: red; text-align: center; font-weight: 400; \">Enter your display name.</span></div>";
+                    }
+                } else {
+                    // Bad email input
+                    document.getElementById('email-input').classList.add('login-error');
+                    document.getElementById('name-input').classList.remove('login-error');
+                    document.getElementById('login-error-message').innerHTML = "<div style=\" margin-top: -10px; margin-bottom: 8px; font-size: 1.5rem; \"><span style=\"color: red; text-align: center; font-weight: 400; \">Enter a valid email</span></div>";
+                }
+            } else {
+                // If there isn't any input, dont give any errors
+                document.getElementById('email-input').classList.remove('login-error');
+                document.getElementById('name-input').classList.remove('login-error');
+            }
+        };
+
+        document.getElementById('login-button').onclick = loginAction;
+        document.body.addEventListener('keydown', function (event) {
+            if (event.keyCode === 13 && event.repeat === false) {
+                loginAction();
+            }
+        });
+    </script>
+</body>
+
+</html>

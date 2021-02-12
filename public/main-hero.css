@@ -1,0 +1,136 @@
+
+/* hero.css */
+
+html,body {
+    background: #EFF3F4;
+    font-family: 'Open Sans', serif;
+    height: 100%;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+  .hero-body .container {
+    max-width: 700px;
+  }
+  .hero-body .title {
+    color: hsl(192,17%,99%) !important;
+  }
+  .hero-body .subtitle {
+    color: hsl(192,17%,99%) !important;
+    padding-top: 2rem;
+    line-height: 1.5;
+  }
+  .features {
+    padding: 5rem 0;
+  }
+  .box.cta {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  .card-image > .fas, .card-image > .fab {
+    font-size: 8rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    color: #209cee;
+  }
+  /* .card-content .content {
+    font-size: 14px;
+    margin: 1rem 1rem;
+  }
+  .card-content .content h4 {
+    font-size: 16px;
+    font-weight: 700;
+  } */
+  .card {
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.18);
+    margin-bottom: 2rem;
+  }
+  .intro {
+    padding: 5rem 0;
+    text-align: center;
+  }
+  .sandbox {
+    padding: 5rem 0;
+  }
+  .tile.notification {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .is-shady {
+  animation: flyintoright .4s backwards;
+  background: #fff;
+  box-shadow: rgba(0, 0, 0, .1) 0 1px 0;
+  border-radius: 4px;
+  display: inline-block;
+  margin: 10px;
+  position: relative;
+  transition: all .2s ease-in-out;
+  }
+  .is-shady:hover {
+  box-shadow: 0 10px 16px rgba(0, 0, 0, .13), 0 6px 6px rgba(0, 0, 0, .19);
+  }
+  /*adds font awesome stars*/
+  footer li:before {
+    content: '\f1b2';
+    font-family: 'FontAwesome';
+    float: left;
+    margin-left: -1.5em;
+    color: #147efb;
+  }
+  
+  /* /hero.css */
+  
+  /* Boxes at bottom */
+  .language-box-text {
+    text-align: center;
+    font-size: 1.5rem;
+  }
+  .language-box {
+    padding-bottom: 0;
+  }
+  .language-box-card {
+    margin-bottom: 10px;
+  }
+  #bottom-text {
+    margin-bottom: 30px;
+  }
+  .core-team-picture {
+    max-width: 270px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* Mobile is assumed (Portait) */
+  #main-image-div {
+    margin-top: -20px;
+    margin-bottom: 20px;
+  }
+  
+  #main-image {
+    width: 400px;
+  }
+  
+  /* Large Tablets */
+  @media only screen and (min-width: 769px) {
+  
+  #main-image-div {
+    margin-top: -120px;
+  }
+  
+  #not-found-url {
+    margin-bottom: -100px;
+  }
+  
+  }
+  
+  @media only screen and (max-width: 1087px) {
+  
+  #bottom-text {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+  
+  }

@@ -1,11 +1,11 @@
 {
-  "name": "HoTTrivia",
+  "name": "hottrivia",
   "version": "1.0.0",
-  "description": "heads or tails trivia game",
+  "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "./bin/app"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
   "repository": {
     "type": "git",
@@ -13,22 +13,16 @@
   },
   "author": "Thad B",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/realS1ant/HoTTrivia/issues"
-  },
-  "homepage": "https://github.com/realS1ant/HoTTrivia#readme",
   "dependencies": {
     "bcrypt": "^5.0.0",
+    "connect-mongo": "^3.2.0",
     "dotenv": "^8.2.0",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
-    "http-errors": "^1.8.0",
+    "fs": "0.0.1-security",
     "mongoose": "^5.11.15",
     "morgan": "^1.10.0",
-    "pino": "^6.11.1",
-    "pino-http": "^5.5.0",
-    "pino-pretty": "^4.5.0"
-  },
-  "keywords": []
+    "nodemon": "^2.0.7"
+  }
 }
