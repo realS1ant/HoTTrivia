@@ -1,23 +1,60 @@
+<!DOCTYPE html>
 <html>
 
 <head>
-    <title>500 Internal Server Error | SLUH Trivia</title>
+    <title>500 Internal Server Error - SLUH Trivia</title>
+    <%- include('../partials/head.ejs') %>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+        <!-- Bulma Version 0.7.1-->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <style media="screen">
+            html,
+            body {
+                font-family: 'Open Sans', serif;
+                font-size: 14px;
+                font-weight: 300;
+            }
+
+            .hero.is-success {
+                background-image: linear-gradient(141deg, #04a6d7 0, #209cee 71%, #3287f5 100%);
+            }
+
+            .hero .nav,
+            .hero.is-success .nav {
+                -webkit-box-shadow: none;
+                box-shadow: none;
+            }
+
+            .button.is-info.is-hovered,
+            .button.is-info:hover {
+                background-color: rgb(182, 175, 175);
+                border-color: transparent;
+                color: #209cee;
+            }
+
+            .button.is-info {
+                background-color: #fff;
+                border-color: transparent;
+                color: #209cee;
+            }
+        </style>
 </head>
 
-<body bgcolor="white">
-    <center>
-        <h1>500 Internal Server Error</h1>
-    </center>
-    <hr>
-    <center>
-        <h2><a href="/">Home</a></h2>
-    </center>
+<body>
+    <section class="hero is-success is-fullheight">
+        <div class="hero-body">
+            <div class="container has-text-centered">
+                <div class="column is-4 is-offset-4">
+                    <h3 class="title has-text-white" style="font-size: 3rem;">500 Internal Server Error</h3>
+                    <h3 class="title has-text-white">Something went wrong :(</h3>
+                    <!-- <button class="button is-block is-info is-large is-fullwidth">Home</button> -->
+                    <a href="/"><button class="button is-block is-info is-large is-fullwidth">Home</button></a>
+                </div>
+            </div>
+        </div>
+    </section>
 </body>
 
 </html>
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->

@@ -1,1 +1,129 @@
-hi
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login - SLUH Trivia</title>
+    <%- include('./partials/head.ejs') %>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+        <!-- Bulma Version 0.7.1-->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <style media="screen">
+            html,
+            body {
+                font-family: 'Open Sans', serif;
+                font-size: 14px;
+                font-weight: 300;
+            }
+
+            .hero.is-success {
+                background-image: linear-gradient(141deg, #04a6d7 0, #209cee 71%, #3287f5 100%);
+            }
+
+            .hero .nav,
+            .hero.is-success .nav {
+                -webkit-box-shadow: none;
+                box-shadow: none;
+            }
+
+            p {
+                font-weight: 700;
+            }
+
+            p.subtitle {
+                padding-top: 1rem;
+            }
+
+            p.blue {
+                color: #209cee;
+                vertical-align: middle;
+                font-size: 2rem;
+            }
+
+            button#heads-button,
+            button#tails-button {
+                color: gold;
+            }
+
+            button#heads-button.is-active,
+            button#tails-button.is-active {
+                border-color: gray;
+                background-color: #066baf;
+            }
+        </style>
+</head>
+
+<body>
+    <section class="hero is-success is-fullheight">
+        <div class="hero-body">
+            <div class="container has-text-centered">
+                <div class="column is-4 is-offset-4">
+                    <h1 class="title has-text-white" style="font-size: 3rem;">SLUH Trivia</h1>
+                    <div class="box">
+                        <section id="error-message"></section>
+                        <div class="columns">
+                            <div class="column">
+                                <button id="heads-button"
+                                    class="button is-block is-info is-large is-fullwidth">Heads</button>
+                            </div>
+                            <div class="column">
+                                <p class="has-text-centered blue">or</p>
+                            </div>
+                            <div class="column">
+                                <button id="tails-button"
+                                    class="button is-block is-info is-large is-fullwidth">Tails</button>
+                            </div>
+                        </div>
+                        <button id="submit-button" class="button is-block is-info is-large is-fullwidth">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script type="text/javascript">
+        function errorMessage(err) {
+            document.getElementById('error-message').innerHTML = "<div style=\" margin-top: -10px; margin-bottom: 8px; font-size: 1.5rem; \"><span style=\"color: red; text-align: center; font-weight: 400; \">" + err + "</span></div>";
+        }
+
+        function headsAction() {
+            document.getElementById('heads-button').classList.add('is-active');
+            document.getElementById('tails-button').classList.remove('is-active');
+            if (document.getElementById('error-message').innerHTML !== '') {
+                errorMessage('');
+            }
+        }
+        function tailsAction() {
+            document.getElementById('tails-button').classList.add('is-active');
+            document.getElementById('heads-button').classList.remove('is-active');
+            if (document.getElementById('error-message').innerHTML !== '') {
+                errorMessage('');
+            }
+        }
+
+        function submitAction() {
+            //Check for tails or heads
+            if (document.getElementById('heads-button').classList.contains('is-active') || document.getElementById('tails-button').classList.contains('is-active')) {
+                let choice = '';
+                let time = new Date();
+                if (document.getElementById('heads-button').classList.contains('is-active')) choice = 'heads';
+                else choice = 'tails'; //               Figure out if it's heads or tails
+                const data = { choice, time }; //The constructed data we're sending to the backend
+
+            } else {
+                errorMessage("Choose heads or tails.");
+            }
+        };
+
+        document.getElementById('heads-button').onclick = headsAction;
+        document.getElementById('tails-button').onclick = tailsAction;
+        document.getElementById('submit-button').onclick = submitAction;
+        document.body.addEventListener('keydown', function (event) {
+            if (event.keyCode === 13 && event.repeat === false) {
+                submitAction();
+            }
+        });
+    </script>
+</body>
+
+</html>

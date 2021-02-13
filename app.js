@@ -90,30 +90,32 @@ app.use((req, res, next) => {
     next(error);
 });
 
-// app.use((error, req, res, next) => {
-//     console.log('oi');
-//     res.status(error.status || 500);
-//     if (error.status === 404) {
-//         const resOptions = {};
-//         resOptions.originalUrl = req.originalUrl;
-//         if (req.session.loggedIn) {
-//             if (req.session.userType === 'student') {
-//                 resOptions.loggedIn = true;
-//                 resOptions.userType = 'student';
-//             } else if (req.session.userType === 'admin') {
-//                 resOptions.loggedIn = true;
-//                 resOptions.userType = 'admin';
-//             } else {
-//                 resOptions.loggedIn = false;
-//             }
-//         } else {
-//             resOptions.loggedIn = false;
-//         }
-//         res.render('errors/404.ejs', resOptions);
-//     } else {
-//         res.render('errors/500.ejs');
-//     }
-// });
+app.use((error, req, res, next) => {
+    res.status(error.status || 500);
+    console.log(error.message);
+    if (error.status === 404) {
+        const resOptions = {};
+        resOptions.originalUrl = req.originalUrl;
+        if (req.session.loggedIn) {
+            if (req.session.userType === 'student') {
+                resOptions.loggedIn = true;
+                resOptions.userType = 'student';
+            } else if (req.session.userType === 'admin') {
+                resOptions.loggedIn = true;
+                resOptions.userType = 'admin';
+            } else {
+                resOptions.loggedIn = false;
+            }
+        } else {
+            resOptions.loggedIn = false;
+        }
+        res.render('errors/404.ejs', resOptions);
+    } else if (error.status === 401 || error.message === 'Not authorized') {
+        res.render('errors/401.ejs');
+    } else {
+        res.render('errors/500.ejs');
+    }
+});
 
 //Starting express app
 const port = process.env.PORT || 5000;

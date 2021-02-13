@@ -7,7 +7,7 @@ router.get('/', (req, res, next) => {
   // } else {
   //   res.redirect('/login');
   // }
-  res.render('game.js');
+  res.render('game.ejs');
 });
 
 module.exports = router;
