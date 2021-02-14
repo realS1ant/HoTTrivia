@@ -1,8 +1,14 @@
 const express = require('express');
 const app = express();
+const http = require('http').createServer(app);
+// const socket = require('socket.io');
+// const io = socket(http);
+const { Server } = require('socket.io');
+const io = new Server(http);
 const ejs = require('ejs');
 const mongoose = require('mongoose');
 const session = require('express-session');
+const moment = require('moment');
 //const cookieSession = require('cookie-session');
 const MongoStore = require('connect-mongo')(session);
 require('dotenv').config();
@@ -15,7 +21,8 @@ let missingEnvVars = '';
     'MONGO_USER',
     // 'MONGO_PW',
     // 'MONGO_DB',
-    'SESSION_SECRET'
+    'SESSION_SECRET',
+    'ADMIN_PASSWORD'
 ].forEach(envVar => {
     if (typeof process.env[envVar] === 'undefined') {
         missingEnvVars += envVar + ' ';
@@ -60,10 +67,12 @@ const sess = {
     saveUninitialized: false,
     store: new MongoStore({ mongooseConnection: database }),
     cookie: {
-        maxAge: 86400000 // 86400000 ms = 1 day (1 * 24 * 60 * 60 * 1000)
+        maxAge: 86400000, // 86400000 ms = 1 day (1 * 24 * 60 * 60 * 1000)
+        secure: false
     }
 };
 if (process.env.ENV === 'production') {
+    console.log('Production mode!');
     app.set('trust proxy', 1);
     sess.cookie.secure = true;
 }
@@ -79,9 +88,26 @@ app.use((req, res, next) => {
     next();
 });
 
+//Socket code (commented out moved to socket.js to clean up and shorten app.js)
+// io.on('connection', (socket) => {
+//     console.log(`User connected. ID: ${socket.id}\n Sockets: ${io.sockets.sockets.size}`);
+//     socket.on('data', data => {
+//         console.log(`Data incoming:\n - ${data.choice}\n - ${data.time}`);
+//         if (data.choice == 'tails') {
+//             socket.emit('eliminate');
+//             console.log('Eliminated this socket!')
+//         }
+//     });
+// });
+
+
 //Routes
 app.use('/play', require('./routes/game.js'));
 app.use('/', require('./routes/login.js'));
+app.use('/admin/dashboard', require('./routes/admin/dashboard.js'));
+app.use('/admin', require('./routes/admin/login.js'));
+app.use('/api/v1', require('./api/v1.js'));
+app.use('/api/admin', require('./api/admin.js'));
 
 //Error handling
 app.use((req, res, next) => {
@@ -120,4 +146,7 @@ app.use((error, req, res, next) => {
 //Starting express app
 const port = process.env.PORT || 5000;
 const host = process.env.HOST || 'http://localhost';
-app.listen(port, () => console.log(`URL: ${host}:${port}`));
+http.listen(port, () => console.log(`URL: ${host}:${port}`));
+
+module.exports = { io };
+require('./sockets');

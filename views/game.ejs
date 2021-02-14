@@ -60,6 +60,8 @@
             <div class="container has-text-centered">
                 <div class="column is-4 is-offset-4">
                     <h1 class="title has-text-white" style="font-size: 3rem;">SLUH Trivia</h1>
+                    <h2 class="title has-text-white" id="round-identifier"></h2>
+                    <h3 class="title has-text-white" id="time-identifier"></h3>
                     <div class="box">
                         <section id="error-message"></section>
                         <div class="columns">
@@ -81,7 +83,52 @@
             </div>
         </div>
     </section>
+    <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
+        const socket = io();
+        let displayName = '';
+        let roundNumber = 0;
+        let roundEndTime = 0;
+
+        socket.on('eliminate', () => {
+            console.log('I have been eliminated.');
+            socket.close();
+        });
+
+        socket.on('startRound', (num, endTime) => {
+            roundNumber = num;
+            document.getElementById('round-identifier').innerText = `Round ${roundNumber}`;
+            roundEndTime = new Date(endTime);
+        });
+
+        function timesUp() {
+            let randomChoice = '';
+            if (Math.floor(Math.random() * 2) === 1) randomChoice = 'heads';
+            else randomChoice = 'tails';
+            console.log(`Time! Randomly chose ${randomChoice}`);
+        }
+
+        // function updateCountdown() {
+        //     if (roundEndTime != 0) {
+        //         let difference = roundEndTime.getSeconds() - new Date().getSeconds();
+        //         if (difference <= 0) {
+        //             document.getElementById('time-identifier').innerText = `Time left: 0`;
+        //             timesUp();
+        //         } else document.getElementById('time-identifier').innerText = `Time left: ${difference}`;
+        //     }
+        // }
+
+        var updateCountdown = setInterval(() => {
+            if (!(roundEndTime <= 0)) {
+                let difference = roundEndTime.getSeconds() - new Date().getSeconds();
+                if (difference <= 0) {
+                    document.getElementById('time-identifier').innerText = `Time left: 0`;
+                    timesUp();
+                    //clearInterval(updateCountdown);
+                } else document.getElementById('time-identifier').innerText = `Time left: ${difference}`;
+            }
+        }, 250);
+
         function errorMessage(err) {
             document.getElementById('error-message').innerHTML = "<div style=\" margin-top: -10px; margin-bottom: 8px; font-size: 1.5rem; \"><span style=\"color: red; text-align: center; font-weight: 400; \">" + err + "</span></div>";
         }
@@ -109,7 +156,7 @@
                 if (document.getElementById('heads-button').classList.contains('is-active')) choice = 'heads';
                 else choice = 'tails'; //               Figure out if it's heads or tails
                 const data = { choice, time }; //The constructed data we're sending to the backend
-
+                socket.emit('data', data);
             } else {
                 errorMessage("Choose heads or tails.");
             }
