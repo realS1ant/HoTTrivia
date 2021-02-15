@@ -5,16 +5,28 @@ const { Socket } = require('socket.io');
 var correct = '';
 var roundNumber = 0;
 var roundEnd = 0;
+var inRound = false;
 
 //Socket code
-io.on('connection', (socket) => {
-    console.log(`User connected. ID: ${socket.id}\n Sockets: ${io.sockets.sockets.size}`);
+io.on('connection', (s) => {
+    const socket = socketType(s);
     socket.on('data', data => {
-        console.log(`Data incoming:\n - ${data.choice}\n - ${data.time}`);
-        if (data.choice == 'tails') {
-            eliminate(socket.id);
-            console.log('Eliminated this socket!')
+        if (!(data.choice && data.time) || !(data.choice === 'heads' | data.choice === 'tails')) {
+            //Data not valid
+            //'error', message, restart
+            socket.emit('error', 'Invalid Data!', true);
+            return;
         }
+        if (data.choice == correct && !moment(data.time).isAfter(roundEnd)) {
+            socket.emit('correct');
+        } else if (moment(data.time).isAfter(roundEnd)) {
+            eliminate(socket);
+        } else {
+            eliminate(socket);
+        }
+    });
+    socket.on('startRound', (num, time, answer) => {
+        if (socket.request.session.admin === true) startRound(num, time, answer);
     });
 });
 
@@ -26,8 +38,12 @@ function startRound(roundNum, duration, correctAnswer) {
     io.emit('startRound', roundNum, date);
 }
 
-function eliminate(socketId) {
-    io.socket(socketId).emit('eliminate');
+function eliminate(socket) {
+    socket.emit('eliminate');
+}
+
+function correct(socket) {
+    socket.emit('correct');
 }
 
 /**
@@ -39,6 +55,18 @@ function eliminate(socketId) {
 function getSocketById(id) {
     io.sockets.sockets[id];
 }
+
+
+/**
+ * 
+ * @param {Socket} socket
+ * 
+ * @returns {Socket} 
+ */
+function socketType(socket) {
+    return socket;
+}
+
 // app.get('/hello/:num/:seconds', (req, res, next) => {
 //     console.log('starting new round ' + req.params.num);
 //     // var date = new Date();
@@ -50,4 +78,4 @@ function getSocketById(id) {
 //     io.emit('startRound', req.params.num, date);
 // });
 
-module.exports = { startRound, }
+module.exports = { startRound }

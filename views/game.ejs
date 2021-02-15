@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Login - SLUH Trivia</title>
+    <title>SLUH Trivia</title>
     <%- include('./partials/head.ejs') %>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
         <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
@@ -41,6 +41,16 @@
                 font-size: 2rem;
             }
 
+            h3.green {
+                color: #0acc34;
+                font-size: 3rem;
+            }
+
+            h3.red {
+                color: #e6380d;
+                font-size: 3rem;
+            }
+
             button#heads-button,
             button#tails-button {
                 color: gold;
@@ -52,6 +62,7 @@
                 background-color: #066baf;
             }
         </style>
+        <link rel='stylesheet' href='spinner.css' />
 </head>
 
 <body>
@@ -62,7 +73,7 @@
                     <h1 class="title has-text-white" style="font-size: 3rem;">SLUH Trivia</h1>
                     <h2 class="title has-text-white" id="round-identifier"></h2>
                     <h3 class="title has-text-white" id="time-identifier"></h3>
-                    <div class="box">
+                    <div class="box" id='voting'>
                         <section id="error-message"></section>
                         <div class="columns">
                             <div class="column">
@@ -79,48 +90,81 @@
                         </div>
                         <button id="submit-button" class="button is-block is-info is-large is-fullwidth">Submit</button>
                     </div>
+                    <div class="box" id='waiting'>
+                        <!-- Waiting spinner, feel free to replace with something better -->
+                        <div class="lds-roller">
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                        </div>
+                    </div>
+                    <div class="box" id='results'>
+                        <h3 class="has-text-centered green">Correct!</h3>
+                    </div>
+                    <div class="box" id='eliminated'>
+                        <h3 class="has-text-centered red">Eliminated!</h3>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="moment-with-locales.js"></script>
     <script type="text/javascript">
+        setView('waiting');
+
+        //check for persistent errors after reload
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('error_msg') || urlParams.get('error_msg') == '') errorMessage(urlParams.get('error_msg'));
+
         const socket = io();
-        let displayName = '';
+
         let roundNumber = 0;
         let roundEndTime = 0;
+        let inRound = false;
+        let lastAnswer = '';
 
         socket.on('eliminate', () => {
             console.log('I have been eliminated.');
             socket.close();
+            setView('eliminated');
         });
 
         socket.on('startRound', (num, endTime) => {
             roundNumber = num;
-            document.getElementById('round-identifier').innerText = `Round ${roundNumber}`;
             roundEndTime = new Date(endTime);
+            inRound = true;
+            document.getElementById('round-identifier').innerText = `Round ${num}`;
+            setView('voting');
+        });
+
+        socket.on('error', (message, reload) => {
+            if (reload) {
+                this.window.location = this.window.location + '?error_msg=' + message;
+            } else errorMessage(message);
+        });
+
+        socket.on('correct', () => {
+            setView('results');
         });
 
         function timesUp() {
+            //Randomly chooses h/t when times runs out and sends it in.
             let randomChoice = '';
-            if (Math.floor(Math.random() * 2) === 1) randomChoice = 'heads';
-            else randomChoice = 'tails';
-            console.log(`Time! Randomly chose ${randomChoice}`);
+            if (Math.floor(Math.random() * 2) === 1) headsAction();
+            else tailsAction();
+            inRound = false;
         }
 
-        // function updateCountdown() {
-        //     if (roundEndTime != 0) {
-        //         let difference = roundEndTime.getSeconds() - new Date().getSeconds();
-        //         if (difference <= 0) {
-        //             document.getElementById('time-identifier').innerText = `Time left: 0`;
-        //             timesUp();
-        //         } else document.getElementById('time-identifier').innerText = `Time left: ${difference}`;
-        //     }
-        // }
-
         var updateCountdown = setInterval(() => {
-            if (!(roundEndTime <= 0)) {
-                let difference = roundEndTime.getSeconds() - new Date().getSeconds();
+            if (inRound) {
+                // let difference = roundEndTime.getSeconds() - new Date().getSeconds();
+                let difference = moment(roundEndTime).diff(new Date(), 'seconds');
                 if (difference <= 0) {
                     document.getElementById('time-identifier').innerText = `Time left: 0`;
                     timesUp();
@@ -151,16 +195,62 @@
         function submitAction() {
             //Check for tails or heads
             if (document.getElementById('heads-button').classList.contains('is-active') || document.getElementById('tails-button').classList.contains('is-active')) {
+                if (!inRound) {
+                    errorMessage('Not in a round!');
+                    return;
+                }
                 let choice = '';
                 let time = new Date();
                 if (document.getElementById('heads-button').classList.contains('is-active')) choice = 'heads';
-                else choice = 'tails'; //               Figure out if it's heads or tails
+                else choice = 'tails'; //Figure out if it's heads or tails
                 const data = { choice, time }; //The constructed data we're sending to the backend
+                lastAnswer = choice;
                 socket.emit('data', data);
+                document.getElementById('heads-button').classList.remove('is-active');
+                document.getElementById('tails-button').classList.remove('is-active');
+                setView('waiting');
             } else {
                 errorMessage("Choose heads or tails.");
             }
         };
+
+        function setView(view) {
+            const votingBox = document.getElementById('voting');
+            const waitingBox = document.getElementById('waiting');
+            const resultsBox = document.getElementById('results');
+            const eliminatedBox = document.getElementById('eliminated');
+            let views = ['waiting', 'voting', 'results', 'eliminated'];
+            if (!(views.includes(view))) {
+                console.log(`invalid view, tried to set view to: '${view}'?`);
+                return;
+            }
+            switch (view) {
+                case 'waiting':
+                    votingBox.style.display = 'none';
+                    waitingBox.style.display = '';
+                    resultsBox.style.display = 'none';
+                    eliminatedBox.style.display = 'none';
+                    break;
+                case 'voting':
+                    votingBox.style.display = '';
+                    waitingBox.style.display = 'none';
+                    resultsBox.style.display = 'none';
+                    eliminatedBox.style.display = 'none';
+                    break;
+                case 'results':
+                    votingBox.style.display = 'none';
+                    waitingBox.style.display = 'none';
+                    resultsBox.style.display = '';
+                    eliminatedBox.style.display = 'none';
+                    break;
+                case 'eliminated':
+                    votingBox.style.display = 'none';
+                    waitingBox.style.display = 'none';
+                    resultsBox.style.display = 'none';
+                    eliminatedBox.style.display = '';
+                    break;
+            }
+        }
 
         document.getElementById('heads-button').onclick = headsAction;
         document.getElementById('tails-button').onclick = tailsAction;

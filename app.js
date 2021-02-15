@@ -76,7 +76,11 @@ if (process.env.ENV === 'production') {
     app.set('trust proxy', 1);
     sess.cookie.secure = true;
 }
-app.use(session(sess));
+const sessionMiddleware = session(sess);
+app.use(sessionMiddleware);
+io.use((socket, next) => {
+    sessionMiddleware(socket.request, {}, next);
+});
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
