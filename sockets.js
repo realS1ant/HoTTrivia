@@ -17,7 +17,7 @@ io.on('connection', (s) => {
             socket.emit('error', 'Invalid Data!', true);
             return;
         }
-        if (data.choice == correct && !moment(data.time).isAfter(roundEnd)) {
+        if (data.choice === correct && !moment(data.time).isAfter(roundEnd)) {
             socket.emit('correct');
         } else if (moment(data.time).isAfter(roundEnd)) {
             eliminate(socket);
@@ -47,9 +47,9 @@ function correct(socket) {
 }
 
 /**
- * 
- * @param {String} id 
- * 
+ *
+ * @param {String} id
+ *
  * @returns {Socket}
  */
 function getSocketById(id) {
@@ -58,10 +58,10 @@ function getSocketById(id) {
 
 
 /**
- * 
+ *
  * @param {Socket} socket
- * 
- * @returns {Socket} 
+ *
+ * @returns {Socket}
  */
 function socketType(socket) {
     return socket;

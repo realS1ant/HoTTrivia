@@ -73,7 +73,7 @@
                     <h1 class="title has-text-white" style="font-size: 3rem;">SLUH Trivia</h1>
                     <h2 class="title has-text-white" id="round-identifier"></h2>
                     <h3 class="title has-text-white" id="time-identifier"></h3>
-                    <div class="box" id='voting'>
+                    <!-- <div class="box" id='voting'>
                         <section id="error-message"></section>
                         <div class="columns">
                             <div class="column">
@@ -89,8 +89,10 @@
                             </div>
                         </div>
                         <button id="submit-button" class="button is-block is-info is-large is-fullwidth">Submit</button>
-                    </div>
-                    <div class="box" id='waiting'>
+                    </div> -->
+                    <div class="box">
+                      <section id="error-message"></section>
+                      <section id="waiting">
                         <!-- Waiting spinner, feel free to replace with something better -->
                         <div class="lds-roller">
                             <div></div>
@@ -102,12 +104,29 @@
                             <div></div>
                             <div></div>
                         </div>
-                    </div>
-                    <div class="box" id='results'>
+                      </section>
+                      <section id="voting">
+                        <div class="columns">
+                            <div class="column">
+                                <button id="heads-button"
+                                    class="button is-block is-info is-large is-fullwidth">Heads</button>
+                            </div>
+                            <div class="column">
+                                <p class="has-text-centered blue">or</p>
+                            </div>
+                            <div class="column">
+                                <button id="tails-button"
+                                    class="button is-block is-info is-large is-fullwidth">Tails</button>
+                            </div>
+                        </div>
+                        <button id="submit-button" class="button is-block is-info is-large is-fullwidth">Submit</button>
+                      </section>
+                      <section id='results'>
                         <h3 class="has-text-centered green">Correct!</h3>
-                    </div>
-                    <div class="box" id='eliminated'>
+                      </section>
+                      <section id='eliminated'>
                         <h3 class="has-text-centered red">Eliminated!</h3>
+                      </section>
                     </div>
                 </div>
             </div>
@@ -117,6 +136,7 @@
     <script src="moment-with-locales.js"></script>
     <script type="text/javascript">
         setView('waiting');
+        let submittedThisRound = false;
 
         //check for persistent errors after reload
         const urlParams = new URLSearchParams(window.location.search);
@@ -136,6 +156,7 @@
         });
 
         socket.on('startRound', (num, endTime) => {
+            submittedThisRound = false;
             roundNumber = num;
             roundEndTime = new Date(endTime);
             inRound = true;
@@ -149,16 +170,18 @@
             } else errorMessage(message);
         });
 
-        socket.on('correct', () => {
-            setView('results');
-        });
+        // socket.on('correct', () => {
+        //     setView('results');
+        // });
 
         function timesUp() {
-            //Randomly chooses h/t when times runs out and sends it in.
-            let randomChoice = '';
-            if (Math.floor(Math.random() * 2) === 1) headsAction();
-            else tailsAction();
-            inRound = false;
+            if (!submittedThisRound) {
+                //Randomly chooses h/t when times runs out and sends it in.
+                let randomChoice = '';
+                if (Math.floor(Math.random() * 2) === 1) headsAction();
+                else tailsAction();
+                inRound = false;
+            }
         }
 
         var updateCountdown = setInterval(() => {
@@ -206,6 +229,8 @@
                 const data = { choice, time }; //The constructed data we're sending to the backend
                 lastAnswer = choice;
                 socket.emit('data', data);
+                submittedThisRound = true;
+                errorMessage('You selected ' + choice + '.');
                 document.getElementById('heads-button').classList.remove('is-active');
                 document.getElementById('tails-button').classList.remove('is-active');
                 setView('waiting');
