@@ -9,6 +9,7 @@ const ejs = require('ejs');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const moment = require('moment');
+const morgan = require('morgan');
 //const cookieSession = require('cookie-session');
 const MongoStore = require('connect-mongo')(session);
 require('dotenv').config();
@@ -75,6 +76,9 @@ if (process.env.ENV === 'production') {
     console.log('Production mode!');
     app.set('trust proxy', 1);
     sess.cookie.secure = true;
+} else if (process.env.ENV === 'dev') {
+    console.log('Dev mode');
+    app.use(morgan('dev'));
 }
 const sessionMiddleware = session(sess);
 app.use(sessionMiddleware);
