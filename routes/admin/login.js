@@ -3,10 +3,7 @@ const router = express.Router();
 
 router.get('/', (req, res, next) => {
     if (req.session.admin === true) {
-        res.status(200).json({
-            admin: true,
-            redirectTo: '/admin/dashboard'
-        });
+        res.redirect('/admin');
     } else {
         res.render('adminlogin.ejs');
     }

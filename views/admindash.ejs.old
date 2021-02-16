@@ -7,7 +7,7 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
         <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
         <!-- Bulma Version 0.7.1-->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <style media="screen">
             html,
@@ -65,67 +65,21 @@
     <section class="hero is-success is-fullheight">
         <div class="hero-body">
             <div class="container has-text-centered">
-                <!-- <div class="column is-4 is-offset-4"> -->
-                <h1 class="title has-text-white" style="font-size: 3rem;">Admin Dashboard</h1>
-                <div class="columns">
-                    <div class="column is-half is-offset-one-quarter">
-                        <!-- New Round Creation Area -->
-                        <div class="card">
-                            <header class="card-header">
-                                <p class="card-header-title has-text-centered">
-                                    Start Rounds
-                                </p>
-                            </header>
-                            <div class="card-content">
-                                <div class="field">
-                                    <div class="control has-icons-left">
-                                        <input id="round-number-input" class="input is-medium" type="number"
-                                            placeholder="0">
-                                        <span class="icon is-small is-left"><i class="fa fa-hashtag"></i></span>
-                                    </div>
-                                </div>
-                                <button id="new-round-button" class="button is-info is-large">Start Round</button>
-                            </div>
-                        </div>
+                <div class="column is-4 is-offset-4">
+                    <h1 class="title has-text-white" style="font-size: 3rem;">Admin Dashboard</h1>
+                    <!--s New Round Creation Area -->
+                    <div class="box">
+                        <h3 class="section-title">Start Rounds</h3>
+                        <button id="new-round-button" class="button is-info is-large">Start Round</button>
+
                     </div>
 
-                    <div class="column is-half is-offset-one-quarter">
-                        <!-- New Round Creation Area -->
-                        <div class="card">
-                            <header class="card-header">
-                                <p class="card-header-title has-text-centered">
-                                    Email Upload
-                                </p>
-                            </header>
-                            <div class="card-content">
-                                <div class="file has-name is-info is-medium">
-                                    <label class="file-label">
-                                        <input class="file-input" type="file" name="resume">
-                                        <span class="file-cta">
-                                            <span class="file-icon">
-                                                <i class="fas fa-upload"></i>
-                                            </span>
-                                            <span class="file-label">
-                                                Select Emails CSV...
-                                            </span>
-                                        </span>
-                                        <span class="file-name">
-                                            AllowedEmails.csv
-                                        </span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <!-- Allowed Emails CSV upload -->
-                <!-- https://flaviocopes.com/express-forms-files/  Can use this or another middleware, seems like it'll be hard w/o a middleware. -->
-                <!-- <div class="box">
+                    <!-- Allowed Emails CSV upload -->
+                    <!-- https://flaviocopes.com/express-forms-files/  Can use this or another middleware, seems like it'll be hard w/o a middleware. -->
+                    <div class="box">
                         <h3 class="section-title">Email Upload</h3>
                         <!-- https://bulma.io/documentation/form/file/#modifiers -->
-                <!-- <div class="file has-name is-fullwidth is-info is-medium">
+                        <div class="file has-name is-fullwidth is-info is-medium">
                             <label class="file-label">
                                 <input class="file-input" type="file" name="resume">
                                 <span class="file-cta">
@@ -144,7 +98,7 @@
                     </div>
 
                     <!-- Account Lookup Area (Lookup email status || Add another email to DB so they can play) -->
-                <!-- <div class="box">
+                    <div class="box">
                         <h3 class="section-title">Account Lookup</h3>
 
                         <div class="control has-icons-left has-icons-right">
@@ -157,9 +111,9 @@
                             </span>
                         </div>
 
-                    </div> -->
+                    </div>
 
-                <!-- </div> -->
+                </div>
             </div>
         </div>
         </div>
@@ -169,6 +123,8 @@
         function enterAction() {
             if (document.getElementById('email-search-input').is) return;
         }
+
+        document.getElementById('submit-button').onclick = submitAction;
         document.body.addEventListener('keydown', function (event) {
             if (event.keyCode === 13 && event.repeat === false) {
                 enterAction();
