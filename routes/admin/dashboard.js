@@ -3,7 +3,7 @@ const { protectedAdmin } = require('../../api/auth');
 const router = express.Router();
 
 router.get('/', protectedAdmin, (req, res, next) => {
-    res.render('admindash.ejs');
+    res.render('admin.ejs');
 });
 
 module.exports = router;

@@ -6,21 +6,32 @@ const { protectedAdmin, protectedPlayer } = require('./auth.js');
 router.post('/login', (req, res, next) => {
     if (req.body.password === process.env.ADMIN_PASSWORD) {
         req.session.admin = true;
+        req.session.player = false;
         res.status(200).json({
             success: true,
             loggedIn: true,
             admin: true,
-            redirectTo: '/admin/dashboard'
+            redirectTo: '/admin'
         });
     } else {
         req.session.admin = false;
         res.status(200).json({
             success: true,
-            logeedIn: false,
             admin: false,
-            message: 'Incorrect Password!',
-            redirectTo: '/admin'
+            loggedIn: false,
+            message: 'Incorrect Password!'
         });
+    }
+});
+
+router.post('/logout', (req, res, next) => {
+    if (req.session.admin === true) {
+        req.session.admin = false;
+        req.session.player = false;
+        res.status(200).json({
+            success: true,
+            redirectTo: '/'
+        })
     }
 });
 

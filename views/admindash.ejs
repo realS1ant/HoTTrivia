@@ -64,12 +64,12 @@
 <body>
     <section class="hero is-success is-fullheight">
         <div class="hero-body">
-            <div class="container has-text-centered">
-                <!-- <div class="column is-4 is-offset-4"> -->
-                <h1 class="title has-text-white" style="font-size: 3rem;">Admin Dashboard</h1>
-                <div class="columns">
-                    <div class="column is-half is-offset-one-quarter">
-                        <!-- New Round Creation Area -->
+            <div class="tile is-ancestor">
+                <div class="container has-text-centered">
+                    <h1 class="title has-text-white" style="font-size: 3rem;">Admin Dashboard</h1>
+
+                    <!-- New Round Creation Area -->
+                    <div class="tile">
                         <div class="card">
                             <header class="card-header">
                                 <p class="card-header-title has-text-centered">
@@ -89,15 +89,15 @@
                         </div>
                     </div>
 
-                    <div class="column is-half is-offset-one-quarter">
-                        <!-- New Round Creation Area -->
+                    <!-- Email Upload Area -->
+                    <div class="tile">
                         <div class="card">
                             <header class="card-header">
                                 <p class="card-header-title has-text-centered">
                                     Email Upload
                                 </p>
                             </header>
-                            <div class="card-content">
+                            <div class="card-content has-text-centered">
                                 <div class="file has-name is-info is-medium">
                                     <label class="file-label">
                                         <input class="file-input" type="file" name="resume">
@@ -117,52 +117,34 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Account Lookup Area -->
+                    <div class="tile">
+                        <div class="card">
+                            <header class="card-header">
+                                <p class="card-header-title has-text-centered">
+                                    Account Lookup
+                                </p>
+                            </header>
+                            <div class="card-content has-text-centered">
+                                <div class="control has-icons-left has-icons-right">
+                                    <input class="input is-large" type="text" placeholder="Email"
+                                        id='email-search-input'>
+                                    <span class="icon is-medium is-left">
+                                        <i class="fa fa-search"></i>
+                                    </span>
+                                    <span class="icon is-medium is-right">
+                                        <i class="fa fa-check"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
 
-                <!-- Allowed Emails CSV upload -->
-                <!-- https://flaviocopes.com/express-forms-files/  Can use this or another middleware, seems like it'll be hard w/o a middleware. -->
-                <!-- <div class="box">
-                        <h3 class="section-title">Email Upload</h3>
-                        <!-- https://bulma.io/documentation/form/file/#modifiers -->
-                <!-- <div class="file has-name is-fullwidth is-info is-medium">
-                            <label class="file-label">
-                                <input class="file-input" type="file" name="resume">
-                                <span class="file-cta">
-                                    <span class="file-icon">
-                                        <i class="fas fa-upload"></i>
-                                    </span>
-                                    <span class="file-label">
-                                        Select Emails CSV...
-                                    </span>
-                                </span>
-                                <span class="file-name">
-                                    AllowedEmails.csv
-                                </span>
-                            </label>
-                        </div>
-                    </div>
 
-                    <!-- Account Lookup Area (Lookup email status || Add another email to DB so they can play) -->
-                <!-- <div class="box">
-                        <h3 class="section-title">Account Lookup</h3>
-
-                        <div class="control has-icons-left has-icons-right">
-                            <input class="input is-large" type="text" placeholder="Email" id='email-search-input'>
-                            <span class="icon is-medium is-left">
-                                <i class="fa fa-search"></i>
-                            </span>
-                            <span class="icon is-medium is-right">
-                                <i class="fa fa-check"></i>
-                            </span>
-                        </div>
-
-                    </div> -->
-
-                <!-- </div> -->
-            </div>
-        </div>
-        </div>
+            </div> <!-- Container End -->
         </div>
     </section>
     <script type="text/javascript">

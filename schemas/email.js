@@ -13,7 +13,7 @@ const emailSchema = new mongoose.Schema({
         type: String,
         required: false
     },
-    gameState: {
+    eliminated: {
         type: String,
         required: false
     }

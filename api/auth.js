@@ -3,7 +3,7 @@ const methods = {};
 methods.protectedPlayer = (req, res, next) => {
     if (req.session.admin === true) {
         res.redirect('/admin');
-    } else if (req.session.loggedIn === true) {
+    } else if (req.session.player === true) {
         next();
     } else {
         next(new Error('Not authorized'));
@@ -14,7 +14,7 @@ methods.protectedAdmin = (req, res, next) => {
     if (req.session.admin === true) {
         next();
     } else {
-        next(new Error('Not authorized'));
+        res.redirect('/admin/login');
     }
 }
 

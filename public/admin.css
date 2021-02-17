@@ -1,0 +1,100 @@
+html,
+body {
+    font-family: 'Open Sans', serif;
+    font-size: 14px;
+    font-weight: 300;
+    overflow-y: hidden;
+}
+
+.hero.is-success {
+    background-image: linear-gradient(141deg, #04a6d7 0, #209cee 71%, #3287f5 100%);
+}
+
+.hero .nav,
+.hero.is-success .nav {
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+input {
+    font-weight: 300;
+}
+
+.ht-radio {
+    font-size: 1.5rem;
+}
+
+h1#main-title {
+    font-size: 3rem;
+}
+
+#logout-button {
+    font-weight: bold;
+}
+
+#current-game {
+    background-color: #fff;
+    color:#209cee!important;
+    border-radius: 3.5px;
+}
+
+/* Helpers.css */
+.center,
+.center-column,
+.top,
+.right,
+.bottom,
+.left {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.left-column {
+    flex-direction: column;
+}
+
+.top {
+    align-items: flex-start;
+}
+
+.right {
+    justify-content: flex-end;
+}
+
+.bottom {
+    align-items: flex-end;
+}
+
+.left {
+    justify-content: flex-start;
+}
+
+.single-spaced,
+.single-spaced * {
+    line-height: 1;
+}
+
+@media (max-width: 1024px) {
+    .desktop {
+        display: none;
+    }
+}
+
+@media (max-width: 812px) {
+    #navbar-columns {
+        flex-direction: column;
+    }
+
+    .right {
+        justify-content: center;
+    }
+
+    h1#main-title {
+        font-size: 1.5rem;
+    }
+
+    #logout-button {
+        font-weight: 600;
+    }
+}

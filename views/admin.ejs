@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin - SLUH Trivia</title>
+    <%- include('./partials/head.ejs') %>
+        <link href="/fontawesome/css/all.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+        <!-- Bulma Version 0.9.1-->
+        <link rel="stylesheet" href="/bulma/css/bulma.min.css">
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <link rel="stylesheet" href="admin.css" media="screen">
+
+
+        <!-- <link rel="stylesheet" href="debug.css"> -->
+</head>
+
+<body>
+    <section class="hero is-success is-fullheight">
+        <div class="hero-head">
+            <div class="columns is-mobile is-marginless" id='navbar-columns'>
+                <div class="column left desktop">
+                    <span class="icon is-large">
+                        <i class="fas fa-bolt fa-2x"></i>
+                    </span>
+                </div>
+                <div class="column center">
+                    <h1 class="navbar-item title has-text-white" id='main-title'>SLUH Trivia Admin</h1>
+                </div>
+                <div class="column right">
+                    <button class="button is-danger is-large" id="logout-button">Logout</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="hero-body">
+            <div class="container has-text-centered">
+                <div class="columns">
+
+                    <!-- Left Side -->
+                    <div class="column">
+                        <div class="columns left-column">
+
+                            <div class="column">
+                                <div class="card">
+                                    <header class="card-header">
+                                        <p class="card-header-title has-text-centered">
+                                            Start Rounds
+                                        </p>
+                                    </header>
+                                    <div class="card-content">
+                                        <div class="columns">
+                                            <div class="column">
+                                                <div class="field">
+                                                    <div class="control has-icons-left">
+                                                        <input id="round-number-input" class="input is-medium"
+                                                            type="number" value="0">
+                                                        <span class="icon is-small is-left"><i
+                                                                class="fas fa-hashtag"></i></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="column">
+                                                <div class="field">
+                                                    <div class="control has-icons-left">
+                                                        <input id="round-time-input" class="input is-medium"
+                                                            type="number" value="45">
+                                                        <span class="icon is-small is-left"><i
+                                                                class="fas fa-clock"></i></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="column">
+                                                <div class="control ht-radio">
+                                                    <label class="radio">
+                                                        <input type="radio" name="answer" checked>
+                                                        Heads
+                                                    </label>
+                                                    <label class="radio">
+                                                        <input type="radio" name="answer">
+                                                        Tails
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button id="new-round-button" class="button is-info is-large">Start
+                                            Round</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column">
+                                <div class="card">
+                                    <header class="card-header">
+                                        <p class="card-header-title has-text-centered">
+                                            Email Upload
+                                        </p>
+                                    </header>
+                                    <div class="card-content has-text-centered">
+                                        <div class="file has-name is-info is-medium">
+                                            <label class="file-label">
+                                                <input class="file-input" type="file" name="resume">
+                                                <span class="file-cta">
+                                                    <span class="file-icon">
+                                                        <i class="fas fa-upload"></i>
+                                                    </span>
+                                                    <span class="file-label">
+                                                        Select Emails CSV...
+                                                    </span>
+                                                </span>
+                                                <span class="file-name">
+                                                    AllowedEmails.csv
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column">
+                                <div class="card">
+                                    <header class="card-header">
+                                        <p class="card-header-title has-text-centered">
+                                            Account Lookup
+                                        </p>
+                                    </header>
+                                    <div class="card-content has-text-centered">
+                                        <div class="control has-icons-left has-icons-right">
+                                            <input class="input is-large" type="text" placeholder="Email"
+                                                id='email-search-input'>
+                                            <span class="icon is-medium is-left">
+                                                <i class="fa fa-search"></i>
+                                            </span>
+                                            <span class="icon is-medium is-right">
+                                                <i class="fa fa-check"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Left Side -->
+
+                    <!-- Right Side -->
+                    <div class="column" id="current-game">
+                        <div class="section">
+                            <div class="container">
+                                <div class="title" style="color:#209cee;">Game info</div>
+                                <div class="subtitle" style="color:#209cee;font-size:1.5rem;">here</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right Side -->
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script type="text/javascript">
+        function enterKeyPress() {
+            //Check what they typin in.
+        }
+        document.getElementById('logout-button').onclick = () => {
+            axios.post('/api/admin/logout').then(res => {
+                if (res.data.success) window.location = res.data.redirectTo;
+                else alert('Server Error');
+            });
+        };
+        document.body.addEventListener('keydown', function (event) {
+            if (event.keyCode === 13 && event.repeat === false) {
+                enterKeyPress();
+            }
+        });
+    </script>
+</body>
+
+</html>
