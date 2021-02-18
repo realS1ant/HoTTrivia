@@ -1,9 +1,9 @@
 html,
 body {
     font-family: 'Open Sans', serif;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 300;
-    overflow-y: hidden;
+    /* overflow-y: hidden; */
 }
 
 .hero.is-success {
@@ -38,6 +38,16 @@ h1#main-title {
     border-radius: 3.5px;
 }
 
+
+
+.table {
+    font-size: 20px;
+}
+
+tbody {
+    overflow-y: scroll;
+}
+
 /* Helpers.css */
 .center,
 .center-column,
@@ -51,6 +61,10 @@ h1#main-title {
 }
 
 .left-column {
+    flex-direction: column;
+}
+
+.stack {
     flex-direction: column;
 }
 
@@ -68,6 +82,14 @@ h1#main-title {
 
 .left {
     justify-content: flex-start;
+}
+
+#side-columns {
+    justify-content: space-between;
+}
+
+.blue {
+    color:#209cee!important;
 }
 
 .single-spaced,
@@ -96,5 +118,11 @@ h1#main-title {
 
     #logout-button {
         font-weight: 600;
+    }
+}
+
+@media (max-width: 1450px) {
+    .d1450px {
+        display: none;
     }
 }

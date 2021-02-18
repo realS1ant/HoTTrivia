@@ -28,6 +28,18 @@ io.on('connection', (s) => {
     socket.on('startRound', (num, time, answer) => {
         if (socket.request.session.admin === true) startRound(num, time, answer);
     });
+    socket.on('sendPlayers', () => {
+        if (socket.request.session.admin === true) {
+            const players = [];
+            io.sockets.sockets.forEach(sock => {
+                if (sock.request.session.player === true) {
+                    players.push({ email: sock.request.sesion.email, name: sock.request.sesion.name });
+                }
+            });
+            socket.emit('allPlayers', players);
+        }
+    });
+
 });
 
 function startRound(roundNum, duration, correctAnswer) {

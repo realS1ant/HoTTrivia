@@ -36,7 +36,7 @@
 
         <div class="hero-body">
             <div class="container has-text-centered">
-                <div class="columns">
+                <div class="columns" id="side-columns">
 
                     <!-- Left Side -->
                     <div class="column">
@@ -50,7 +50,7 @@
                                         </p>
                                     </header>
                                     <div class="card-content">
-                                        <div class="columns">
+                                        <div class="columns" id="top-row">
                                             <div class="column">
                                                 <div class="field">
                                                     <div class="control has-icons-left">
@@ -84,8 +84,31 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <button id="new-round-button" class="button is-info is-large">Start
-                                            Round</button>
+                                        <div class="columns" id="bottom-row">
+                                            <div class="column">
+                                                <label class="checkbox">
+                                                    <input type="checkbox" id="autoinc-checkbox" checked>
+                                                    Automatically increase round number by one.
+                                                </label>
+                                            </div>
+                                            <div class="column">
+                                                <div class="columns">
+                                                    <div class="column">
+                                                        <button id="30-btn" class="button is-info is-medium">30</button>
+                                                    </div>
+                                                    <div class="column">
+                                                        <button id="45-btn" class="button is-info is-medium">45</button>
+                                                    </div>
+                                                    <div class="column">
+                                                        <button id="60-btn" class="button is-info is-medium">60</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="column">
+                                                <button id="new-round-button" class="button is-primary is-large">Start
+                                                    Round</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -147,8 +170,33 @@
                     <div class="column" id="current-game">
                         <div class="section">
                             <div class="container">
-                                <div class="title" style="color:#209cee;">Game info</div>
-                                <div class="subtitle" style="color:#209cee;font-size:1.5rem;">here</div>
+                                <div class="columns" id="game-info-title">
+                                    <div class="column is-5">
+                                        <h1 class="title blue" id="round-num">Round 0</h1>
+                                    </div>
+                                    <div class="column is-2">
+                                        <h1 class="title blue" id="time-left">0s</h1>
+                                    </div>
+                                    <div class="column is-5">
+                                        <h1 class="title blue" id="players-left">0 Players Left</h1>
+                                    </div>
+                                </div>
+
+                                <!-- All the current players listed here: -->
+                                <div class="table-container">
+                                    <table class="table is-bordered is-striped is-fullwidth" id="users-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Email</th>
+                                                <th>Display Name</th>
+                                                <th><abbr title="Remove">Rm</abbr></th>
+                                            </tr>
+                                        </thead>
+                                        <!-- Stuff is added with js function -->
+                                        <tbody id="users-table-body"></tbody>
+                                    </table>
+                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -158,16 +206,70 @@
             </div>
         </div>
     </section>
-
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="moment-with-locales.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script type="text/javascript">
+        const socket = io();
+
+        socket.on('newPlayer', (email, name) => {
+            addToUsersTable(email, name);
+        });
+
+        socket.on('removePlayer', (email) => {
+            deleteByEmail(email);
+        });
+
+        socket.on('allPlayers', (players) => {
+            players.forEach(player => {
+                if (!tableHas(player.email)) addToUsersTable(player.email, player.name);
+            });
+        });
+
+        socket.emit('sendPlayers');
+
         function enterKeyPress() {
             //Check what they typin in.
         }
+
+        function addToUsersTable(email, name) {
+            let cell1 = document.createElement('td');
+            let cell2 = document.createElement('td');
+            let cell3 = document.createElement('td')
+            cell1.innerText = email;
+            cell2.innerText = name;
+            cell3.innerHTML = '<button class="button is-danger" onclick="deleteUser(this);"><span class="icon is-small"><i class="fas fa-ban"></i></span></button>';
+
+            var tr = document.createElement('tr');
+            tr.append(cell1);
+            tr.append(cell2);
+            tr.append(cell3);
+
+            var tableBody = document.getElementById('users-table-body');
+            tableBody.append(tr);
+        }
+
+        function deleteUser(button) {
+            button.parentElement.parentElement.remove();
+        }
+
+        function deleteByEmail(email) {
+            $("td:contains(" + email + ")").parents('tr').remove();
+        }
+
+        function tableHas(email) {
+            return $('#users-table td:contains(' + email + ')').length > 0;
+        }
+
         document.getElementById('logout-button').onclick = () => {
             axios.post('/api/admin/logout').then(res => {
                 if (res.data.success) window.location = res.data.redirectTo;
                 else alert('Server Error');
             });
+        };
+        document.getElementById('round-number-input').disabled = document.getElementById('autoinc-checkbox').checked;
+        document.getElementById('autoinc-checkbox').onchange = function () {
+            document.getElementById('round-number-input').disabled = this.checked;
         };
         document.body.addEventListener('keydown', function (event) {
             if (event.keyCode === 13 && event.repeat === false) {
