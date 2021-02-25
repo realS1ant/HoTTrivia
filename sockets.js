@@ -88,12 +88,9 @@ io.on('connection', (s) => {
         io.sockets.emit('correctAnswer', correct);
     });
     socket.on('reviveEliminated', () => {
-        console.log('called');
         if (!session.admin === true) return;
         io.sockets.sockets.forEach(sock => {
-            console.log('asd')
             if (sock.request.session.status === 'eliminated') {
-                console.log(".a.sd.as")
                 sock.emit('revive');
                 sock.request.session.status = 'playing';
             }

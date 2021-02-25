@@ -177,9 +177,7 @@
         // });
 
         socket.on('correctAnswer', ans => {
-            console.log(ans);
             if (!eliminated) {
-                console.log('.');
                 if (ans === lastAnswer) setView('correct');
                 else {
                     setView('eliminated');
