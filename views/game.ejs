@@ -122,7 +122,7 @@
                             <button id="submit-button"
                                 class="button is-block is-info is-large is-fullwidth">Submit</button>
                         </section>
-                        <section id='results'>
+                        <section id='correct'>
                             <h3 class="has-text-centered green">Correct!</h3>
                         </section>
                         <section id='eliminated'>
@@ -137,7 +137,6 @@
     <script src="moment-with-locales.js"></script>
     <script type="text/javascript">
         setView('waiting');
-        let submittedThisRound = false;
 
         //check for persistent errors after reload
         const urlParams = new URLSearchParams(window.location.search);
@@ -149,26 +148,56 @@
         let roundEndTime = 0;
         let inRound = false;
         let lastAnswer = '';
-
-        socket.on('eliminate', () => {
-            console.log('I have been eliminated.');
-            socket.close();
-            setView('eliminated');
-        });
+        let submittedThisRound = false;
+        let eliminated = false;
 
         socket.on('startRound', (num, endTime) => {
-            submittedThisRound = false;
-            roundNumber = num;
-            roundEndTime = new Date(endTime);
-            inRound = true;
-            document.getElementById('round-identifier').innerText = `Round ${num}`;
-            setView('voting');
+            if (!eliminated) {
+                submittedThisRound = false;
+                roundNumber = num;
+                roundEndTime = new Date(endTime);
+                inRound = true;
+                document.getElementById('round-identifier').innerText = `Round ${num}`;
+                setView('voting');
+            }
+        });
+        socket.on('eliminate', () => {
+            setView('eliminated');
+            inRound = false;
+            if (inRound) document.getElementById('time-identifier').innerText = `Time left: 0`;
         });
 
-        socket.on('error', (message, reload) => {
+        // socket.on('wait', () => {
+        //     setView('waiting');
+        // });
+
+        // socket.on('correct', () => {
+        //     setView('correct');
+        //     inRound = false;
+        // });
+
+        socket.on('correctAnswer', ans => {
+            console.log(ans);
+            if (!eliminated) {
+                console.log('.');
+                if (ans === lastAnswer) setView('correct');
+                else {
+                    setView('eliminated');
+                    eliminated = true;
+                }
+            }
+        });
+
+        socket.on('revive', () => {
+            errorMessage('You have been revived!', false);
+            eliminated = false;
+            setView('waiting');
+        });
+
+        socket.on('error', (message, reload, redColor) => {
             if (reload) {
                 this.window.location = this.window.location + '?error_msg=' + message;
-            } else errorMessage(message);
+            } else errorMessage(message, red);
         });
 
         // socket.on('correct', () => {
@@ -181,6 +210,7 @@
                 let randomChoice = '';
                 if (Math.floor(Math.random() * 2) === 1) headsAction();
                 else tailsAction();
+                submitAction();
                 inRound = false;
             }
         }
@@ -197,8 +227,12 @@
             }
         }, 250);
 
-        function errorMessage(err) {
-            document.getElementById('error-message').innerHTML = "<div style=\" margin-top: -10px; margin-bottom: 8px; font-size: 1.5rem; \"><span style=\"color: red; text-align: center; font-weight: 400; \">" + err + "</span></div>";
+        function errorMessage(err, red) {
+            if (red) {
+                document.getElementById('error-message').innerHTML = "<div style=\" margin-top: -10px; margin-bottom: 8px; font-size: 1.5rem; \"><span style=\"color: red; text-align: center; font-weight: 400; \">" + err + "</span></div>";
+            } else {
+                document.getElementById('error-message').innerHTML = "<div style=\" margin-top: -10px; margin-bottom: 8px; font-size: 1.5rem; \"><span style=\"color: #209cee; text-align: center; font-weight: 400; \">" + err + "</span></div>";
+            }
         }
 
         function headsAction() {
@@ -217,6 +251,11 @@
         }
 
         function submitAction() {
+            if (eliminated) {
+                errorMessage("You're eliminated!");
+                setView('eliminated')
+                return;
+            }
             //Check for tails or heads
             if (document.getElementById('heads-button').classList.contains('is-active') || document.getElementById('tails-button').classList.contains('is-active')) {
                 if (!inRound) {
@@ -243,9 +282,9 @@
         function setView(view) {
             const votingBox = document.getElementById('voting');
             const waitingBox = document.getElementById('waiting');
-            const resultsBox = document.getElementById('results');
+            const correctBox = document.getElementById('correct');
             const eliminatedBox = document.getElementById('eliminated');
-            let views = ['waiting', 'voting', 'results', 'eliminated'];
+            let views = ['waiting', 'voting', 'correct', 'eliminated'];
             if (!(views.includes(view))) {
                 console.log(`invalid view, tried to set view to: '${view}'?`);
                 return;
@@ -254,25 +293,25 @@
                 case 'waiting':
                     votingBox.style.display = 'none';
                     waitingBox.style.display = '';
-                    resultsBox.style.display = 'none';
+                    correctBox.style.display = 'none';
                     eliminatedBox.style.display = 'none';
                     break;
                 case 'voting':
                     votingBox.style.display = '';
                     waitingBox.style.display = 'none';
-                    resultsBox.style.display = 'none';
+                    correctBox.style.display = 'none';
                     eliminatedBox.style.display = 'none';
                     break;
-                case 'results':
+                case 'correct':
                     votingBox.style.display = 'none';
                     waitingBox.style.display = 'none';
-                    resultsBox.style.display = '';
+                    correctBox.style.display = '';
                     eliminatedBox.style.display = 'none';
                     break;
                 case 'eliminated':
                     votingBox.style.display = 'none';
                     waitingBox.style.display = 'none';
-                    resultsBox.style.display = 'none';
+                    correctBox.style.display = 'none';
                     eliminatedBox.style.display = '';
                     break;
             }

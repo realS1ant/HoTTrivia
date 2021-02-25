@@ -14,6 +14,10 @@ const morgan = require('morgan');
 const MongoStore = require('connect-mongo')(session);
 require('dotenv').config();
 
+//Global variables
+global.globalAllowLogins = true;
+global.globalCheckEmail = true;
+
 //.ENV checks
 let missingEnvVars = '';
 [
@@ -114,6 +118,7 @@ app.use('/play', require('./routes/game.js'));
 app.use('/', require('./routes/login.js'));
 app.use('/admin', require('./routes/admin/dashboard.js'));
 app.use('/admin/login', require('./routes/admin/login.js'));
+app.use('/admin/present', require('./routes/admin/present.js'));
 app.use('/api/v1', require('./api/v1.js'));
 app.use('/api/admin', require('./api/admin.js'));
 

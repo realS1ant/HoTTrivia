@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin - SLUH Trivia</title>
+    <%- include('./partials/head.ejs') %>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.2/css/bulma.min.css" />
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <link rel="stylesheet" href="../admin.css" media="screen">
+
+        <!-- <link rel="stylesheet" href="debug.css"> -->
+</head>
+
+<body>
+    <section class="hero is-success is-fullheight">
+        <div class="hero-head">
+            <div class="columns is-mobile is-marginless" id='navbar-columns'>
+                <div class="column left desktop">
+                    <a href="/admin"><span class="icon is-large">
+                            <i class="fas fa-columns fa-3x" title="Admin Dashboard"></i></i>
+                        </span></a>
+                </div>
+                <div class="column center">
+                    <h1 class="navbar-item title has-text-white" id='main-title'>SLUH Heads or Tails</h1>
+                </div>
+                <div class="column right">
+                    <button class="button is-danger is-large" id="next-button">Logout</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="hero-body">
+            <div class="container has-text-centered">
+                <div class="box">
+                    hello.
+                </div>
+            </div>
+        </div>
+    </section>
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Chart.js for votes pie chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> -->
+    <script type="text/javascript">
+
+    </script>
+</body>
+
+</html>

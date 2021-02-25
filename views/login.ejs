@@ -72,7 +72,8 @@
                         <section id="login-error-message"></section>
                         <div class="field">
                             <div class="control has-icons-left">
-                                <input id="name-input" class="input is-large" type="name" placeholder="Display Name" autofocus>
+                                <input id="name-input" class="input is-large" type="name" placeholder="Display Name"
+                                    autofocus>
                                 <span class="icon is-small is-left"><i class="fa fa-user"></i></span>
                             </div>
                         </div>
@@ -107,16 +108,23 @@
                 if (validateEmail(document.getElementById('email-input').value)) {
                     if (document.getElementById('name-input').value.length > 0) {
                         // Fields are good
+                        document.getElementById('email-input').classList.remove('login-error');
+                        document.getElementById('name-input').classList.remove('login-error');
+                        document.getElementById('login-error-message').innerHTML = "";
                         axios.post('/api/v1/auth', {
                             email: document.getElementById('email-input').value,
                             name: document.getElementById('name-input').value
                         }).then(function (response) {
                             if (response.data.success) {
+                                if (response.data.error != 0) {
+                                    document.getElementById('login-error-message').innerHTML = "<div style=\" margin-top: -10px; margin-bottom: 8px; font-size: 1.5rem; \"><span style=\"color: red; text-align: center; font-weight: 400; \">" + response.data.error + "</span></div>";
+                                    return;
+                                }
                                 if (response.data.loggedIn) {
                                     window.location = response.data.redirectTo;
                                 } else {
                                     document.getElementById('email-input').classList.add('login-error');
-                                    document.getElementById('name-input').classList.add('login-error');
+                                    document.getElementById('name-input').classList.remove('login-error');
                                     document.getElementById('login-error-message').innerHTML = "<div style=\" margin-top: -10px; margin-bottom: 8px; font-size: 1.5rem; \"><span style=\"color: red; text-align: center; font-weight: 400; \">Incorrect email.</span></div>";
                                 }
                             } else {

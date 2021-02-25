@@ -1,43 +1,107 @@
 const { io } = require('./app');
 const moment = require('moment');
 const { Socket } = require('socket.io');
+let defaultTime = process.env.DEFAULT_ROUND_DURATION;
+
 
 var correct = '';
 var roundNumber = 0;
 var roundEnd = 0;
 var inRound = false;
 
+
 //Socket code
 io.on('connection', (s) => {
     const socket = socketType(s);
+    const session = socket.request.session;
+
+    session.lastSocketId = socket.id;
+
+    if (session.status === 'eliminated') socket.emit('eliminate');
+    else session.status = 'playing';
+
     socket.on('data', data => {
+        if (session.status === 'eliminated') {
+            socket.emit('eliminate');
+            socket.emit('error', 'You were already eliminated!', false, true);
+        }
         if (!(data.choice && data.time) || !(data.choice === 'heads' | data.choice === 'tails')) {
             //Data not valid
             //'error', message, restart
-            socket.emit('error', 'Invalid Data!', true);
+            socket.emit('error', 'Invalid Data!', true, true);
             return;
         }
         if (data.choice === correct && !moment(data.time).isAfter(roundEnd)) {
-            socket.emit('correct');
+            session.status = 'playing';
+
         } else if (moment(data.time).isAfter(roundEnd)) {
-            eliminate(socket);
+            session.status = 'eliminated';
         } else {
-            eliminate(socket);
+            session.status = 'eliminated';
         }
     });
-    socket.on('startRound', (num, time, answer) => {
-        if (socket.request.session.admin === true) startRound(num, time, answer);
+
+    socket.on('setDefaultRoundDuration', time => {
+        if (session.admin === true) {
+            if (time == 0) return;
+            defaultTime = time;
+            console.log('defaultTime: ' + defaultTime)
+        }
+    });
+
+    socket.on('updateLoginSettings', (allowLogins, checkEmails) => {
+        if (session.admin === true) {
+            if (typeof allowLogins != 'boolean' || typeof checkEmails != 'boolean') {
+                global.globalAllowLogins = true;
+                global.globalCheckEmails = true;
+                console.log('UpdateLoginSettings data not valid');
+            } else {
+                global.globalAllowLogins = allowLogins;
+                global.globalCheckEmails = checkEmails;
+            }
+        }
+    });
+
+    //Admin things
+    socket.on('startRound', () => {
+        if (session.admin === true) {
+            correct = Math.floor(Math.random() * 2) === 1 ? 'heads' : 'tails';
+            startRound(++roundNumber, defaultTime, correct);
+        }
     });
     socket.on('sendPlayers', () => {
-        if (socket.request.session.admin === true) {
+        if (session.admin === true) {
             const players = [];
             io.sockets.sockets.forEach(sock => {
                 if (sock.request.session.player === true) {
-                    players.push({ email: sock.request.sesion.email, name: sock.request.sesion.name });
+                    players.push({ sessionId: sock.request.session.id, email: sock.request.sesion.email, name: sock.request.sesion.name });
                 }
             });
             socket.emit('allPlayers', players);
         }
+    });
+    socket.on('sendResults', () => {
+        //just sending the correct answer and the clients can validate theirselves, if they remove some code and let themselves 
+        //  continue when they send the data they will be stopped.
+        if (!session.admin === true) return;
+        if (moment(new Date()).isBefore(roundEnd)) return;
+        io.sockets.emit('correctAnswer', correct);
+    });
+    socket.on('reviveEliminated', () => {
+        console.log('called');
+        if (!session.admin === true) return;
+        io.sockets.sockets.forEach(sock => {
+            console.log('asd')
+            if (sock.request.session.status === 'eliminated') {
+                console.log(".a.sd.as")
+                sock.emit('revive');
+                sock.request.session.status = 'playing';
+            }
+        });
+    })
+
+    socket.on('banPlayer', (sessionId) => {
+        //not sure how to ban from session ID as can't rlly grab session from ID?
     });
 
 });
@@ -50,13 +114,10 @@ function startRound(roundNum, duration, correctAnswer) {
     io.emit('startRound', roundNum, date);
 }
 
-function eliminate(socket) {
-    socket.emit('eliminate');
-}
-
-function correct(socket) {
-    socket.emit('correct');
-}
+//emit 'eliminate' to show the eliminated view.
+//emit 'correct' to show the correct answer view.
+//emit 'wait' to show the spinner for everyone
+//emit 'voting' to show the voting section. (this is automatically done on startRound though.)
 
 /**
  *
@@ -68,7 +129,6 @@ function getSocketById(id) {
     io.sockets.sockets[id];
 }
 
-
 /**
  *
  * @param {Socket} socket
@@ -78,16 +138,5 @@ function getSocketById(id) {
 function socketType(socket) {
     return socket;
 }
-
-// app.get('/hello/:num/:seconds', (req, res, next) => {
-//     console.log('starting new round ' + req.params.num);
-//     // var date = new Date();
-//     // date.setSeconds(date.getSeconds() + 15);
-//     // date.setSeconds(date.getSeconds() + req.params.time);
-//     var date = moment(new Date()).add(req.params.seconds, 's').toDate();
-//     console.log(new Date())
-//     console.log(date)
-//     io.emit('startRound', req.params.num, date);
-// });
 
 module.exports = { startRound }

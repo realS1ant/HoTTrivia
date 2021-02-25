@@ -22,12 +22,12 @@
         <div class="hero-head">
             <div class="columns is-mobile is-marginless" id='navbar-columns'>
                 <div class="column left desktop">
-                    <a href="/present"><span class="icon is-large">
-                        <i class="fas fa-eye" title="Presentation View"></i>
-                    </span></a>
+                    <a href="/admin/present"><span class="icon is-large">
+                            <i class="fas fa-eye" title="Presentation View"></i>
+                        </span></a>
                 </div>
                 <div class="column center">
-                    <h1 class="navbar-item title has-text-white" id='main-title'>SLUH Trivia Admin</h1>
+                    <h1 class="navbar-item title has-text-white" id='main-title'>SLUH Heads or Tails Admin</h1>
                 </div>
                 <div class="column right">
                     <button class="button is-danger is-large" id="logout-button">Logout</button>
@@ -48,67 +48,100 @@
                                 <div class="card">
                                     <header class="card-header">
                                         <p class="card-header-title has-text-centered">
-                                            Start Rounds
+                                            Control Game
                                         </p>
                                     </header>
                                     <div class="card-content">
-                                        <div class="columns" id="top-row">
+                                        <div class="columns">
                                             <div class="column">
-                                                <div class="field">
-                                                    <div class="control has-icons-left">
-                                                        <input id="round-number-input" class="input is-medium"
-                                                            type="number" value="0">
-                                                        <span class="icon is-small is-left"><i
-                                                                class="fas fa-hashtag"></i></span>
-                                                    </div>
+                                                <button id="revive-button" class="button is-danger is-large">Revive
+                                                    Eliminated</button>
+                                            </div>
+                                            <div class="column">
+                                                <button id="reveal-button" class="button is-primary is-large">Reveal
+                                                    Results</button>
+                                            </div>
+                                            <div class="column">
+                                                <button id="new-round-button" class="button is-primary is-large">Start
+                                                    Next Round</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column">
+                                <div class="card">
+                                    <header class="card-header">
+                                        <p class="card-header-title has-text-centered">
+                                            Control Login
+                                        </p>
+                                    </header>
+                                    <div class="card-content">
+                                        <div class="columns is-vcentered">
+                                            <div class="column">
+                                                <label class="checkbox">
+                                                    <input type="checkbox" id="allow-players-check" checked>
+                                                    Allow Players to Join.
+                                                </label>
+                                            </div>
+                                            <div class="column">
+                                                <div class="control">
+                                                    <div class="title is-4 blue">Check Email</div>
+                                                    <label class="radio">
+                                                        <input type="radio" name="need-email" id="yes" checked>
+                                                        Yes
+                                                    </label>
+                                                    <label class="radio">
+                                                        <input type="radio" name="need-email">
+                                                        No
+                                                    </label>
                                                 </div>
                                             </div>
+                                            <div class="column">
+                                                <button id="update-login-btn" class="button is-primary is-large">Update
+                                                    Login Control</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column">
+                                <div class="card">
+                                    <header class="card-header">
+                                        <p class="card-header-title has-text-centered">
+                                            Round Duration
+                                        </p>
+                                    </header>
+                                    <div class="card-content">
+                                        <div class="columns">
                                             <div class="column">
                                                 <div class="field">
                                                     <div class="control has-icons-left">
                                                         <input id="round-time-input" class="input is-medium"
-                                                            type="number" value="45">
+                                                            type="number" value="10">
                                                         <span class="icon is-small is-left"><i
                                                                 class="fas fa-clock"></i></span>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="column">
-                                                <div class="control ht-radio">
-                                                    <label class="radio">
-                                                        <input type="radio" name="answer" checked>
-                                                        Heads
-                                                    </label>
-                                                    <label class="radio">
-                                                        <input type="radio" name="answer">
-                                                        Tails
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="columns" id="bottom-row">
-                                            <div class="column">
-                                                <label class="checkbox">
-                                                    <input type="checkbox" id="autoinc-checkbox" checked>
-                                                    Automatically increase round number by one.
-                                                </label>
-                                            </div>
-                                            <div class="column">
                                                 <div class="columns">
                                                     <div class="column">
-                                                        <button id="30-btn" class="button is-info is-medium">30</button>
+                                                        <button id="5-btn" class="button is-info is-medium">5</button>
                                                     </div>
                                                     <div class="column">
-                                                        <button id="45-btn" class="button is-info is-medium">45</button>
+                                                        <button id="10-btn" class="button is-info is-medium">10</button>
                                                     </div>
                                                     <div class="column">
-                                                        <button id="60-btn" class="button is-info is-medium">60</button>
+                                                        <button id="15-btn" class="button is-info is-medium">15</button>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="column">
-                                                <button id="new-round-button" class="button is-primary is-large">Start
-                                                    Round</button>
+                                                <button id="set-duration-btn" class="button is-primary is-large">Set
+                                                    Duration</button>
                                             </div>
                                         </div>
                                     </div>
@@ -189,6 +222,7 @@
                                     <table class="table is-bordered is-striped is-fullwidth" id="users-table">
                                         <thead>
                                             <tr>
+                                                <th><abbr title="Socket ID">ID</abbr></th>
                                                 <th>Email</th>
                                                 <th>Display Name</th>
                                                 <th><abbr title="Remove">Rm</abbr></th>
@@ -214,64 +248,94 @@
     <script type="text/javascript">
         const socket = io();
 
-        socket.on('newPlayer', (email, name) => {
-            addToUsersTable(email, name);
+        socket.on('newPlayer', (socketId, email, name) => {
+            addToUsersTable(socketId, email, name);
         });
 
-        socket.on('removePlayer', (email) => {
-            deleteByEmail(email);
+        socket.on('removePlayer', (socketId) => {
+            deleteByID(socketId);
         });
 
         socket.on('allPlayers', (players) => {
+            $('#users-table-body').children().remove();
             players.forEach(player => {
-                if (!tableHas(player.email)) addToUsersTable(player.email, player.name);
+                if (!tableHas(player.socketId)) addToUsersTable(player.socketId, player.email, player.name);
             });
         });
 
+        socket.on('startRound', (num, end) => {
+
+        });
+
+        //request list of all players for table.
         socket.emit('sendPlayers');
 
         function enterKeyPress() {
             //Check what they typin in.
         }
 
-        function addToUsersTable(email, name) {
+        function addToUsersTable(socketId, email, name) {
             let cell1 = document.createElement('td');
             let cell2 = document.createElement('td');
             let cell3 = document.createElement('td')
             cell1.innerText = email;
             cell2.innerText = name;
             cell3.innerHTML = '<button class="button is-danger" onclick="deleteUser(this);"><span class="icon is-small"><i class="fas fa-ban"></i></span></button>';
+            let id = document.createElement('td');
+            id.innerHTML = '<span class="icon is-small" title="' + socketId + '"><i class="fas fa-user"></i></span>';
 
             var tr = document.createElement('tr');
+            tr.append(id);
             tr.append(cell1);
             tr.append(cell2);
             tr.append(cell3);
+
 
             var tableBody = document.getElementById('users-table-body');
             tableBody.append(tr);
         }
 
         function deleteUser(button) {
-            button.parentElement.parentElement.remove();
+            deleteByID(button.parentElement.parentElement.firstChild.firstChild.title);
         }
 
-        function deleteByEmail(email) {
-            $("td:contains(" + email + ")").parents('tr').remove();
+        function deleteByID(socketId) {
+            socket.emit('banPlayer', socketId);
+            $("td[title='" + socketId + "']").parents('tr').remove();
         }
 
         function tableHas(email) {
             return $('#users-table td:contains(' + email + ')').length > 0;
         }
 
+        $('#revive-button').on('click', () => {
+            socket.emit('reviveEliminated');
+        });
+
+        $('#reveal-button').on('click', () => {
+            socket.emit('sendResults');
+        });
+
+        const newRndBtn = $('#new-round-button');
+        newRndBtn.on('click', () => {
+            socket.emit('startRound');
+        })
+
+        $('#5-btn').on('click', () => { $('#round-time-input').val(5); });
+        $('#10-btn').on('click', () => { $('#round-time-input').val(10); });
+        $('#15-btn').on('click', () => { $('#round-time-input').val(15); });
+        $('#set-duration-btn').on('click', () => { socket.emit('setDefaultRoundDuration', $('#round-time-input').val()); });
+
+        $('#update-login-btn').on('click', () => {
+            socket.emit('updateLoginSettings', $('#allow-players-check').prop('checked'), $('#yes').prop('checked'));
+        });
+
+
         document.getElementById('logout-button').onclick = () => {
             axios.post('/api/admin/logout').then(res => {
                 if (res.data.success) window.location = res.data.redirectTo;
                 else alert('Server Error');
             });
-        };
-        document.getElementById('round-number-input').disabled = document.getElementById('autoinc-checkbox').checked;
-        document.getElementById('autoinc-checkbox').onchange = function () {
-            document.getElementById('round-number-input').disabled = this.checked;
         };
         document.body.addEventListener('keydown', function (event) {
             if (event.keyCode === 13 && event.repeat === false) {
