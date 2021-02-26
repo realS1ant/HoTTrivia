@@ -267,6 +267,10 @@
 
         });
 
+        socket.on('playersLeft', tot => {
+            $('#players-left').innerText(`${tot} Players Left`);
+        });
+
         //request list of all players for table.
         socket.emit('sendPlayers');
 

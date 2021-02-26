@@ -3,9 +3,7 @@ const router = express.Router();
 
 router.get('/', (req, res, next) => {
     if (req.session.player === true) {
-        //res.redirect('/play');
-        console.log('player');
-        res.render('login.ejs');
+        res.redirect('/play');
     } else if (req.session.admin === true) {
         //res.redirect('/admin');
         console.log('admin');

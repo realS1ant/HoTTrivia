@@ -66,11 +66,13 @@ app.use(express.static(__dirname + '/public'));
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
+const store = new MongoStore({ mongooseConnection: database });
+
 const sess = {
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    store: new MongoStore({ mongooseConnection: database }),
+    store,
     cookie: {
         maxAge: 86400000, // 86400000 ms = 1 day (1 * 24 * 60 * 60 * 1000)
         secure: false
@@ -99,19 +101,6 @@ app.use((req, res, next) => {
     }
     next();
 });
-
-//Socket code (commented out moved to socket.js to clean up and shorten app.js)
-// io.on('connection', (socket) => {
-//     console.log(`User connected. ID: ${socket.id}\n Sockets: ${io.sockets.sockets.size}`);
-//     socket.on('data', data => {
-//         console.log(`Data incoming:\n - ${data.choice}\n - ${data.time}`);
-//         if (data.choice == 'tails') {
-//             socket.emit('eliminate');
-//             console.log('Eliminated this socket!')
-//         }
-//     });
-// });
-
 
 //Routes
 app.use('/play', require('./routes/game.js'));
@@ -161,5 +150,5 @@ const port = process.env.PORT || 5000;
 const host = process.env.HOST || 'http://localhost';
 http.listen(port, () => console.log(`URL: ${host}:${port}`));
 
-module.exports = { io };
+module.exports = { io, store };
 require('./sockets');

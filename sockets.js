@@ -1,29 +1,35 @@
-const { io } = require('./app');
+const { io, store } = require('./app');
 const moment = require('moment');
 const { Socket } = require('socket.io');
 let defaultTime = process.env.DEFAULT_ROUND_DURATION;
-
 
 var correct = '';
 var roundNumber = 0;
 var roundEnd = 0;
 var inRound = false;
 
-
 //Socket code
-io.on('connection', (s) => {
+io.on('connection', async (s) => {
     const socket = socketType(s);
+    // const session = await store.get(socket.request.session.id, (err, sess) => { return sess; });
     const session = socket.request.session;
 
     session.lastSocketId = socket.id;
+    store.set(session.id, session, err => { if (err) console.error(err); });
 
     if (session.status === 'eliminated') socket.emit('eliminate');
-    else session.status = 'playing';
+    else if (session.status === 'playing');
+    else {
+        console.log('Someone joined without a (recognized) status! Just making them a player');
+        session.status = 'playing';
+        store.set(session.id, session, err => { if (err) console.error(err); });
+    }
 
     socket.on('data', data => {
         if (session.status === 'eliminated') {
             socket.emit('eliminate');
             socket.emit('error', 'You were already eliminated!', false, true);
+            return;
         }
         if (!(data.choice && data.time) || !(data.choice === 'heads' | data.choice === 'tails')) {
             //Data not valid
@@ -31,13 +37,16 @@ io.on('connection', (s) => {
             socket.emit('error', 'Invalid Data!', true, true);
             return;
         }
-        if (data.choice === correct && !moment(data.time).isAfter(roundEnd)) {
+        if (data.choice === correct && !moment(data.time).isAfter(moment(roundEnd).add(1, 'second'))) {
             session.status = 'playing';
-
-        } else if (moment(data.time).isAfter(roundEnd)) {
+            store.set(session.id, session, err => { if (err) console.error(err); });
+            return;
+        } else if (moment(data.time).isAfter(moment(roundEnd).add(1, 'second'))) {
             session.status = 'eliminated';
+            store.set(session.id, session, err => { if (err) console.error(err); });
         } else {
             session.status = 'eliminated';
+            store.set(session.id, session, err => { if (err) console.error(err); });
         }
     });
 
@@ -93,12 +102,15 @@ io.on('connection', (s) => {
             if (sock.request.session.status === 'eliminated') {
                 sock.emit('revive');
                 sock.request.session.status = 'playing';
+                store.set(session.id, session, err => { if (err) console.error(err); });
             }
         });
-    })
+    });
 
-    socket.on('banPlayer', (sessionId) => {
+    socket.on('banPlayer', (socketId) => {
         //not sure how to ban from session ID as can't rlly grab session from ID?
+        //work out later or just leave it (definitely wouldn't be the end of the world)
+        console.log('tried to ban player with id: ')
     });
 
 });
@@ -109,6 +121,13 @@ function startRound(roundNum, duration, correctAnswer) {
     roundEnd = date;
     correct = correctAnswer;
     io.emit('startRound', roundNum, date);
+    let total = 0;
+    io.sockets.sockets.forEach(s => {
+        if (s.request.session.player === true && s.request.session.status === 'playing') total++;
+    });
+    io.sockets.sockets.forEach(s => {
+        if (s.request.session.admin === true) s.emit('playersLeft', total);
+    });
 }
 
 //emit 'eliminate' to show the eliminated view.
