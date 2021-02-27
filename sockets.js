@@ -1,7 +1,7 @@
 const { io, store } = require('./app');
 const moment = require('moment');
 const { Socket } = require('socket.io');
-let defaultTime = process.env.DEFAULT_ROUND_DURATION;
+let defaultTime = 10;
 
 var correct = '';
 var roundNumber = 0;
@@ -83,7 +83,7 @@ io.on('connection', async (s) => {
             const players = [];
             io.sockets.sockets.forEach(sock => {
                 if (sock.request.session.player === true) {
-                    players.push({ sessionId: sock.request.session.id, email: sock.request.sesion.email, name: sock.request.sesion.name });
+                    players.push({ sessionId: sock.request.session.id, email: sock.request.session.email, name: sock.request.session.name });
                 }
             });
             socket.emit('allPlayers', players);

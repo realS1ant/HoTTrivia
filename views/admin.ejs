@@ -152,26 +152,33 @@
                                 <div class="card">
                                     <header class="card-header">
                                         <p class="card-header-title has-text-centered">
-                                            Email Upload
+                                            Email Upload (columns of email,uses)
                                         </p>
                                     </header>
                                     <div class="card-content has-text-centered">
-                                        <div class="file has-name is-info is-medium">
-                                            <label class="file-label">
-                                                <input class="file-input" type="file" name="resume">
-                                                <span class="file-cta">
-                                                    <span class="file-icon">
-                                                        <i class="fas fa-upload"></i>
+                                        <iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
+                                        <form id="csv-file-form" action="/api/admin/csvupload" method="post" enctype="multipart/form-data" target="dummyframe">
+                                            <div class="file has-name is-info is-medium">
+                                                <label class="file-label">
+                                                    <input id="csv-file-input" class="file-input" type="file" name="csv">
+                                                    <span class="file-cta">
+                                                        <span class="file-icon">
+                                                            <i class="fas fa-upload"></i>
+                                                        </span>
+                                                        <span class="file-label">
+                                                            Select Emails CSV...
+                                                        </span>
                                                     </span>
-                                                    <span class="file-label">
-                                                        Select Emails CSV...
+                                                    <span id="csv-file-name" class="file-name">
+                                                        <!-- AllowedEmails.csv -->
                                                     </span>
-                                                </span>
-                                                <span class="file-name">
-                                                    AllowedEmails.csv
-                                                </span>
-                                            </label>
-                                        </div>
+                                                    <div id="csv-file-submit" class="control" style="padding-left: 10px;">
+                                                        <button class="button is-medium is-info">Submit</button>
+                                                    </div>
+                                                </label>
+                                                <span style="padding-left: 10px;" id="csv-file-info"></span>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -345,6 +352,23 @@
             if (event.keyCode === 13 && event.repeat === false) {
                 enterKeyPress();
             }
+        });
+
+        $('#csv-file-name').hide();
+        $('#csv-file-submit').hide();
+        $('#csv-file-input').on('change',function() {
+            const name = $('#csv-file-input')[0].files[0].name;
+            document.getElementById('csv-file-name').innerHTML = name;
+            if (name.length !== 0) {
+                $('#csv-file-name').show();
+                $('#csv-file-submit').show();
+            } else {
+                $('#csv-file-name').hide();
+                $('#csv-file-submit').hide();
+            }
+        });
+        $('#csv-file-form').on('submit', function() {
+            document.getElementById('csv-file-info').innerHTML = 'Submitted CSV.';
         });
     </script>
 </body>

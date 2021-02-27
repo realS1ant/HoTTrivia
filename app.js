@@ -16,7 +16,7 @@ require('dotenv').config();
 
 //Global variables
 global.globalAllowLogins = true;
-global.globalCheckEmail = true;
+global.globalCheckEmails = true;
 
 //.ENV checks
 let missingEnvVars = '';
