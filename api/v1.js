@@ -17,10 +17,19 @@ router.post('/auth', (req, res, next) => {
         return;
     }
 
+    if (req.session.banned === true) {
+        res.status(200).json({
+            success: true,
+            loggedIn: false,
+            error: 'You were banned!'
+        });
+        return;
+    }
+
     if (global.globalAllowLogins === true) {
         if (global.globalCheckEmails === true) {
-            // /* if allowed to join */if (req.body.email.includes('sluh.org')) { //TEMP ALL JUST FOR TEST! NEED TO VALIDATE WITH DB HERE!
-            AllowedEmail.findOne({email: req.body.email}).then(doc => {
+            /* if allowed to join */
+            AllowedEmail.findOne({ email: req.body.email }).then(doc => {
                 if (doc && typeof doc.uses === 'number' && doc.uses >= 1) {
                     req.session.admin = false;
                     req.session.player = true;
@@ -35,18 +44,6 @@ router.post('/auth', (req, res, next) => {
                     doc.uses -= 1;
                     doc.save();
                     return;
-                // } else /* Email already used, join in w/ last info */if (req.body.email.includes('sluh.or')) {
-                //     req.session.admin = false;
-                //     req.session.player = true;
-                //     let name = req.body.name; //Get this from the DB when relogging in 
-                //     req.session.accountData = { name, email: req.body.email };
-                //     req.session.status = 'playing'; //Get this from the DB when reloggin
-                //     res.status(200).json({
-                //         success: true,
-                //         loggedIn: true,
-                //         redirectTo: '/play',
-                //         error: false
-                //     });
                 } else {
                     res.status(200).json({
                         success: true,
@@ -68,9 +65,6 @@ router.post('/auth', (req, res, next) => {
             });
             return;
         }
-        //Bad word filter??
-        console.log('oi');
-
     } else {
         res.status(200).json({
             success: true,

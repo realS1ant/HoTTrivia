@@ -11,41 +11,149 @@
         <link rel="stylesheet" href="../admin.css" media="screen">
 
         <!-- <link rel="stylesheet" href="debug.css"> -->
+        <style>
+            ::-webkit-scrollbar {
+                width: 0;
+            }
+        </style>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
 </head>
 
 <body>
     <section class="hero is-success is-fullheight">
         <div class="hero-head">
-            <div class="columns is-mobile is-marginless" id='navbar-columns'>
-                <div class="column left desktop">
-                    <a href="/admin"><span class="icon is-large">
-                            <i class="fas fa-columns fa-3x" title="Admin Dashboard"></i></i>
-                        </span></a>
-                </div>
+            <div class="columns is-mobile is-marginless nav" id='navbar-columns'>
                 <div class="column center">
-                    <h1 class="navbar-item title has-text-white" id='main-title'>SLUH Heads or Tails</h1>
-                </div>
-                <div class="column right">
-                    <button class="button is-danger is-large" id="next-button">Logout</button>
+                    <div class="columns is-mobile stack is-vcentered">
+                        <div class="column p-0">
+                            <h1 class="navbar-item title has-text-white p-0" style='font-size: 5rem;'>SLUH Heads or
+                                Tails
+                            </h1>
+                        </div>
+                        <div class="column p-0">
+                            <h2 class="navbar-item subtitle has-text-white p-0 is-1" id="subtitle"></h2>
+                        </div>
+                    </div>
                 </div>
             </div>
 
         </div>
 
         <div class="hero-body">
-            <div class="container has-text-centered">
-                <div class="box">
-                    hello.
-                </div>
+            <div class="container has-text-centered" id='main-content-container'>
+                <span id='in-round'>
+                    <div class="box" id="round-info">
+                        <nav class="level">
+                            <div class="level-item has-text-centered">
+                                <div>
+                                    <p class="title is-3">Round</p>
+                                    <p class="title is-1" id="round-num"></p>
+                                </div>
+                            </div>
+                            <div class="level-item has-text-centered">
+                                <div>
+                                    <p class="title is-3">Time Left</p>
+                                    <p class="title is-1" id="countdown">123</p>
+                                </div>
+                            </div>
+                            <div class="level-item has-text-centered">
+                                <div>
+                                    <p class="title is-3">Votes</p>
+                                    <p class="title is-1" id="votes"></p>
+                                </div>
+                            </div>
+                        </nav>
+                    </div>
+                    <div class="columns pt-2">
+                        <div class="column">
+                            <h1 class="title is-1 is-vcentered" style="color: #209cee;">Heads</h1>
+                        </div>
+                        <div class="column">
+                            <h1 class="title is-1 is-vcentered" style="color: #DF6311;">Tails</h1>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="votes-chart" height="100%"></canvas>
+                    </div>
+                </span>
             </div>
         </div>
     </section>
     <script src="/socket.io/socket.io.js"></script>
-    <!-- Chart.js for votes pie chart -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <script src="../moment-with-locales.js"></script>
     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> -->
     <script type="text/javascript">
+        let subtitleElement = document.getElementById('subtitle');
+        subtitleElement.innerText = window.location.toString().slice().replace('/admin/present', '').replace('https://', '').replace('http://', ''); //Show the link so people can join.
 
+        let roundNumElement = document.getElementById('round-num');
+        roundNumElement.innerText = 0;
+        let countdownElement = document.getElementById('countdown');
+        countdownElement.innerText = 0;
+        let votesElement = document.getElementById('votes');
+        votesElement.innerText = 0;
+
+        let inRound = false;
+        let endTime = 0;
+        let winners = [];
+
+        var updateCountdown = setInterval(() => {
+            if (inRound) {
+                // let difference = roundEndTime.getSeconds() - new Date().getSeconds();
+                let difference = endTime.diff(new Date(), 'seconds');
+                if (difference <= 0) {
+                    countdownElement.innerText = `0`;
+                    inRound = false;
+                } else countdownElement.innerText = difference;
+            }
+        }, 250);
+
+        const socket = io();
+        socket.on('startRound', (num, endDate) => {
+            roundNumElement.innerText = num;
+            inRound = true;
+            endTime = moment(new Date(endDate));
+        });
+
+        socket.on('updateVotes', (newHeads, newTails) => {
+            votesElement.innerText = +votesElement.innerText + (newHeads + newTails);
+            myChart.data.datasets[0].data[0] += newTails;
+            myChart.data.datasets[0].data[1] += newHeads;
+            myChart.update();
+        });
+
+        socket.on('presentView', view => {
+            //game-over, pre-game, or playing
+            setView(view);
+        });
+
+        socket.on('winners', w => {
+            //Array of all final users.
+            winners = w;
+        });
+
+        // Chart code
+        var ctx = document.getElementById('votes-chart');
+        var myChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                datasets: [{
+                    //Tails, Heads
+                    data: [1, 1],
+                    backgroundColor: [
+                        '#DF6311', //Tails
+                        '#209CEE' //Heads
+                    ],
+                    hoverOffset: 4
+                }]
+
+                // These labels appear in the legend and in the tooltips when hovering different arcs
+                // labels: [
+                //     'Tails',
+                //     'Heads'
+                // ]
+            }
+        });
     </script>
 </body>
 

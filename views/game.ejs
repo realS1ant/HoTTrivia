@@ -155,7 +155,7 @@
             if (!eliminated) {
                 submittedThisRound = false;
                 roundNumber = num;
-                roundEndTime = new Date(endTime);
+                roundEndTime = moment(new Date(endTime));
                 inRound = true;
                 document.getElementById('round-identifier').innerText = `Round ${num}`;
                 setView('voting');
@@ -216,7 +216,7 @@
         var updateCountdown = setInterval(() => {
             if (inRound) {
                 // let difference = roundEndTime.getSeconds() - new Date().getSeconds();
-                let difference = moment(roundEndTime).diff(new Date(), 'seconds');
+                let difference = roundEndTime.diff(new Date(), 'seconds');
                 if (difference <= 0) {
                     document.getElementById('time-identifier').innerText = `Time left: 0`;
                     timesUp();

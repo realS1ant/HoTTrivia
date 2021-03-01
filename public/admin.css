@@ -97,6 +97,28 @@ tbody {
     line-height: 1;
 }
 
+#subtitle {
+    font-size: 3.5rem;
+}
+
+#main-content-container {
+    background-color: #fff;
+    padding: 1rem;
+}
+
+#round-info {
+    background-color: #209cee;
+    /* padding: 10px; */
+    width: 90%;
+    text-align: center;
+    margin: auto;
+    /* margin-top: 1rem; */
+}
+
+#chart-container, #chart-column {
+    height: fit-content;
+}
+
 @media (max-width: 1024px) {
     .desktop {
         display: none;

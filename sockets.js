@@ -10,6 +10,7 @@ var inRound = false;
 var adminSockets = [];
 var newHeadsVotes = 0;
 var newTailsVotes = 0;
+var presentView = '';
 
 //Socket code
 io.on('connection', async (s) => {
@@ -27,13 +28,19 @@ io.on('connection', async (s) => {
 
     if (session.status === 'eliminated') socket.emit('eliminate');
     else if (session.status === 'playing');
+    else if (session.admin === true);
     else {
         console.log('Someone joined without a (recognized) status! Just making them a player');
         session.status = 'playing';
         store.set(session.id, session, err => { if (err) console.error(err); });
     }
 
-    if (socket.request.session.admin === true) adminSockets.push(socket);
+    if (socket.request.session.admin === true) {
+        adminSockets.push(socket);
+        socket.emit('currentInfo', roundNumber, roundEnd);
+    }
+
+    if (inRound) io.emit('startRound', roundNumber, roundEnd);
 
     socket.on('data', data => {
         if (session.status === 'eliminated') {
@@ -64,6 +71,7 @@ io.on('connection', async (s) => {
         }
     });
 
+    //Admin Things
     socket.on('setDefaultRoundDuration', time => {
         if (session.admin === true) {
             if (time == 0) return;
@@ -85,7 +93,6 @@ io.on('connection', async (s) => {
         }
     });
 
-    //Admin things
     socket.on('startRound', () => {
         if (session.admin === true) {
             if (checkInRound()) {
@@ -109,7 +116,7 @@ io.on('connection', async (s) => {
         }
     });
     socket.on('sendResults', () => {
-        if (!session.admin === true) return;
+        if (session.admin !== true) return;
         if (checkInRound()) {
             socket.emit('error', 'Still in round!');
             return;
@@ -118,7 +125,7 @@ io.on('connection', async (s) => {
         io.sockets.emit('correctAnswer', correct);
     });
     socket.on('reviveEliminated', () => {
-        if (!session.admin === true) return;
+        if (session.admin !== true) return;
         io.sockets.sockets.forEach(sock => {
             if (sock.request.session.status === 'eliminated') {
                 sock.emit('revive');
@@ -132,17 +139,63 @@ io.on('connection', async (s) => {
         //not sure how to ban from session ID as can't rlly grab session from ID?
         //work out later or just leave it (definitely wouldn't be the end of the world)
         console.log('tried to ban player with id: ' + sessionId);
-        // store.get(sessionId, sess => {
-        //     sess.player = false;
-        //     sess.admin = false;
-        //     sess.banned = true;
-        // error: wasnt getting the socket I believe.
-        //     getSocketById(sess.lastSocketId).emit('error', 'You have been banned!', false, true); 
-        //     getSocketById(sess.lastSocketId).disconnect();
-        // });
+        store.get(sessionId, sess => {
+            //     sess.player = false;
+            //     sess.admin = false;
+            //     sess.banned = true;
+            // // error: wasnt getting the socket I believe.
+            //     getSocketById(sess.lastSocketId).emit('error', 'You have been banned!', false, true); 
+            //     getSocketById(sess.lastSocketId).disconnect();
+            console.log(`lastSocketId: ${sess.lastSocketId}`);
+        });
 
     });
 
+    //Presentation View Management
+    socket.on('setPresentationView', view => {
+        if (session.admin !== true) return;
+        if (!['game-over', 'pre-game', 'playing'].includes(view)) {
+            console.log(`No handling for presentation view: ${view}`);
+            return;
+        }
+        if (presentView === view) {
+            socket.emit('error', `Already in ${view} view!`);
+            return;
+        }
+        if (inRound) {
+            socket.emit('error', 'Currently in a round!');
+            return;
+        }
+        if (view === 'game-over') {
+            let winners = [];
+            io.sockets.sockets.forEach(sock => {
+                if (sock.request.session.eliminated === false && sock.request.session.player === true) winners.push(sock.request.session.accountData.name);
+            });
+            io.sockets.sockets.forEach(sock => {
+                if (sock.request.session.admin === true) sock.emit('winners', winners);
+            });
+        }
+
+        presentView = view;
+        socket.emit('presentView', view);
+        console.log(`Set present view to: ${view}`);
+    });
+
+    socket.on('presentView', () => {
+        if (['game-over', 'pre-game', 'playing'].includes(view)) {
+            socket.emit('presentView', presentView);
+            return;
+        } else {
+            if (!inRound) {
+                presentView = 'pre-game';
+                socket.emit('presentView', 'pre-game');
+            } else {
+                presentView = 'playing';
+                socket.emit('presentView', 'playing');
+            }
+
+        }
+    });
 });
 
 //Send out votes to admins.
