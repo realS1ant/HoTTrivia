@@ -40,8 +40,8 @@
         </div>
 
         <div class="hero-body">
-            <div class="container has-text-centered" id='main-content-container'>
-                <span id='in-round'>
+            <div class="container has-text-centered is-fullheight" id='main-content-container'>
+                <span id='playing'>
                     <div class="box" id="round-info">
                         <nav class="level">
                             <div class="level-item has-text-centered">
@@ -64,25 +64,45 @@
                             </div>
                         </nav>
                     </div>
-                    <div class="columns pt-2">
-                        <div class="column">
-                            <h1 class="title is-1 is-vcentered" style="color: #209cee;">Heads</h1>
+                    <span id="voting">
+                        <div class="columns pt-2">
+                            <div class="column">
+                                <h1 class="title is-1 is-vcentered" style="color: #209cee;">Heads</h1>
+                            </div>
+                            <div class="column">
+                                <h1 class="title is-1 is-vcentered" style="color: #DF6311;">Tails</h1>
+                            </div>
                         </div>
-                        <div class="column">
-                            <h1 class="title is-1 is-vcentered" style="color: #DF6311;">Tails</h1>
+                        <div class="chart-container">
+                            <canvas id="votes-chart" height="100%"></canvas>
                         </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="votes-chart" height="100%"></canvas>
-                    </div>
+                    </span>
+                    <span id="waiting">
+                        <!-- Spinner -->
+
+                    </span>
+                    <span id="results">
+                        <!-- Big Circle with  -->
+                        <h1 class="title is-1">Cirlce with result.</h1>
+                    </span>
+                </span>
+                <span id="pre-game">
+
+                </span>
+                <span id="game-over">
+
                 </span>
             </div>
         </div>
     </section>
     <script src="/socket.io/socket.io.js"></script>
     <script src="../moment-with-locales.js"></script>
-    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script type="text/javascript">
+        setView('pre-game');
+        setInnerView('waiting');
+        setBoxHeight('700');
+
         let subtitleElement = document.getElementById('subtitle');
         subtitleElement.innerText = window.location.toString().slice().replace('/admin/present', '').replace('https://', '').replace('http://', ''); //Show the link so people can join.
 
@@ -110,9 +130,16 @@
 
         const socket = io();
         socket.on('startRound', (num, endDate) => {
+            setView('playing');
+            setInnerView('voting');
             roundNumElement.innerText = num;
             inRound = true;
             endTime = moment(new Date(endDate));
+        });
+
+        socket.on('correctAnswer', correct => {
+            setInnerView('results');
+            document.getElementById('result').innerText = correct.toUpperCase();
         });
 
         socket.on('updateVotes', (newHeads, newTails) => {
@@ -130,7 +157,42 @@
         socket.on('winners', w => {
             //Array of all final users.
             winners = w;
+            setView('game-over');
         });
+
+        socket.on('boxHeight', h => {
+            setBoxHeight(h);
+        });
+
+        function setView(v) {
+            if (['pre-game', 'playing', 'game-over'].indexOf(v.toLowerCase()) === -1) {
+                console.log(`Tried to set view to: ${v}`);
+                return;
+            }
+            document.getElementById('pre-game').style.display = 'none';
+            document.getElementById('playing').style.display = 'none';
+            document.getElementById('game-over').style.display = 'none';
+
+            document.getElementById(v.toLowerCase()).style.display = '';
+        }
+
+        function setInnerView(v) {
+            if (['waiting', 'results', 'voting'].indexOf(v.toLowerCase()) === -1) {
+                console.log(`Tried to set view to: ${v}`);
+                return;
+            }
+            document.getElementById('waiting').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('voting').style.display = 'none';
+
+            document.getElementById(v.toLowerCase()).style.display = '';
+        }
+
+        //Cant figure out how to make it fill the body, height 100% isnt working, need working asap, it will be variable and edittable in the admin console.
+        function setBoxHeight(h) {
+            if (!(typeof (h) === String)) h = h.toString();
+            document.getElementById('main-content-container').style.height = (h + 'px');
+        }
 
         // Chart code
         var ctx = document.getElementById('votes-chart');

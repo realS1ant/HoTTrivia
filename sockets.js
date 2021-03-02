@@ -13,13 +13,13 @@ var newTailsVotes = 0;
 var presentView = '';
 
 //Socket code
-io.on('connection', async (s) => {
+io.on('connection', (s) => {
     const socket = socketType(s);
     // const session = await store.get(socket.request.session.id, (err, sess) => { return sess; });
     const session = socket.request.session;
 
     if (session.banned === true) {
-        socket.emit('error', 'You are banned!', false, true);
+        socket.emit('error', 'You are banned!', true, true);
         socket.disconnect();
     }
 
@@ -43,6 +43,11 @@ io.on('connection', async (s) => {
     if (inRound) io.emit('startRound', roundNumber, roundEnd);
 
     socket.on('data', data => {
+        if (session.banned === true) {
+            socket.emit('error', 'You are banned!', true, true);
+            socket.disconnect();
+        }
+
         if (session.status === 'eliminated') {
             socket.emit('eliminate');
             socket.emit('error', 'You were already eliminated!', false, true);
@@ -108,7 +113,6 @@ io.on('connection', async (s) => {
             const players = [];
             io.sockets.sockets.forEach(sock => {
                 if (sock.request.session.player === true) {
-                    console.log(sock.request.session);
                     players.push({ sessionId: sock.request.session.id, email: sock.request.session.accountData.email, name: sock.request.session.accountData.name });
                 }
             });
@@ -135,18 +139,25 @@ io.on('connection', async (s) => {
         });
     });
 
-    socket.on('banPlayer', (sessionId) => {
+    socket.on('banPlayer', sid => {
+        if (session.admin !== true) return;
         //not sure how to ban from session ID as can't rlly grab session from ID?
         //work out later or just leave it (definitely wouldn't be the end of the world)
-        console.log('tried to ban player with id: ' + sessionId);
-        store.get(sessionId, sess => {
+        // console.log('tried to ban player with id: ' + sessionId);
+        store.get(sid, (err, sess) => {
             //     sess.player = false;
             //     sess.admin = false;
             //     sess.banned = true;
             // // error: wasnt getting the socket I believe.
             //     getSocketById(sess.lastSocketId).emit('error', 'You have been banned!', false, true); 
             //     getSocketById(sess.lastSocketId).disconnect();
-            console.log(`lastSocketId: ${sess.lastSocketId}`);
+            // console.log(`lastSocketId: ${sess.lastSocketId}`);
+
+            //Thought of new way to ban (even though this feature shouldn't matter too much would be good to make sure we have a sort of bad word filter in place.)
+            sess.player = false;
+            sess.admin = false;
+            sess.banned = true;
+            store.set(sid, sess);
         });
 
     });
@@ -182,6 +193,7 @@ io.on('connection', async (s) => {
     });
 
     socket.on('presentView', () => {
+        if (session.admin !== true) return;
         if (['game-over', 'pre-game', 'playing'].includes(view)) {
             socket.emit('presentView', presentView);
             return;
@@ -195,6 +207,21 @@ io.on('connection', async (s) => {
             }
 
         }
+    });
+
+    socket.on('boxHeight', h => {
+        if (session.admin !== true) return;
+        if (typeof (h) !== Number) {
+            if (typeof (h) === 'string') h = +h;
+            else {
+                console.log('tried to set box height to: ' + h);
+                console.log(typeof (h));
+                return;
+            }
+        }
+        adminSockets.forEach(sock => {
+            sock.emit('boxHeight', h);
+        });
     });
 });
 

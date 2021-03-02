@@ -235,7 +235,6 @@
                                                         </span>
                                                     </span>
                                                     <span id="csv-file-name" class="file-name">
-                                                        <!-- AllowedEmails.csv -->
                                                     </span>
                                                     <div id="csv-file-submit" class="control"
                                                         style="padding-left: 10px;">
@@ -245,6 +244,34 @@
                                                 <span style="padding-left: 10px;" id="csv-file-info"></span>
                                             </div>
                                         </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column">
+                                <div class="card">
+                                    <header class="card-header">
+                                        <p class="card-header-title has-text-centered">
+                                            Presentation Main Box Height
+                                        </p>
+                                    </header>
+                                    <div class="card-content">
+                                        <div class="columns">
+                                            <div class="column">
+                                                <div class="field">
+                                                    <div class="control has-icons-left">
+                                                        <input id="box-height-input" class="input is-medium"
+                                                            type="number" value="700">
+                                                        <span class="icon is-small is-left"><i
+                                                                class="fas fa-hashtag"></i></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="column">
+                                                <button id="box-height-btn" class="button is-primary is-large">Set
+                                                    Height</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -267,6 +294,40 @@
                                                 <i class="fa fa-check"></i>
                                             </span>
                                         </div>
+                                        <span id="lookup-content">
+                                            <!-- No Account -->
+                                            <!-- <h1 style='color: red; font-size: 2rem;'>No Account Found</h1>
+                                            <br>
+                                            <button id="add-use" class="button is-primary is-large" onclick="addUse('emailHere');">Add
+                                                Use</button> -->
+
+                                            <!-- Account Found -->
+
+                                            <!-- <div class="columns p-3">
+                                                <div class="column">
+                                                    <h1 style="font-size: 2rem;"><b>Uses: </b> 1</h1>
+                                                </div>
+                                                <div class="column"><button class="button is-primary is-large"
+                                                        onclick="addUse(sessionIdHere);">Add Use</button></div>
+                                            </div>
+                                            <div class="columns p-3">
+                                                <div class="column">
+                                                    <ul style='font-size: 1.75rem;'>
+                                                        <li><b>Name: </b><span id="acc-name">Thad</span></li>
+                                                        <li><b>Email: </b><span id="acc-email">thadb@sluh.org</span>
+                                                        </li>
+                                                        <li><b>Uses Left: </b><span id="acc-uses">1</span></li>
+                                                    </ul>
+                                                </div>
+                                                <div class="column">
+                                                    <div class="columns stack">
+                                                        <div class="column"></div>
+                                                        <div class="column"><button class="button is-danger is-large"
+                                                                onclick="banById(sessionIdHere);">Ban</button></div>
+                                                    </div>
+                                                </div>
+                                            </div> -->
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -318,6 +379,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="moment-with-locales.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script type="text/javascript">
         const socket = io();
 
@@ -408,13 +470,35 @@
             socket.emit('startRound');
         })
 
-        $('#5-btn').on('click', () => { $('#round-time-input').val(5); });
-        $('#10-btn').on('click', () => { $('#round-time-input').val(10); });
-        $('#15-btn').on('click', () => { $('#round-time-input').val(15); });
-        $('#set-duration-btn').on('click', () => { socket.emit('setDefaultRoundDuration', $('#round-time-input').val()); });
-        $('#round-time-input').on('keydown', 'input', e => {
-            if (e.keyCode === 13 && e.repeat === false) {
+        $('#5-btn').on('click', () => {
+            $('#round-time-input').val(5);
+            socket.emit('setDefaultRoundDuration', $('#round-time-input').val());
+            document.getElementById('err-msg').innerText = 'Round Duration Set';
+            document.getElementById('err-modal').classList.add('is-active');
+        });
+        $('#10-btn').on('click', () => {
+            $('#round-time-input').val(10);
+            socket.emit('setDefaultRoundDuration', $('#round-time-input').val());
+            document.getElementById('err-msg').innerText = 'Round Duration Set';
+            document.getElementById('err-modal').classList.add('is-active');
+        });
+        $('#15-btn').on('click', () => {
+            $('#round-time-input').val(15);
+            socket.emit('setDefaultRoundDuration', $('#round-time-input').val());
+            document.getElementById('err-msg').innerText = 'Round Duration Set';
+            document.getElementById('err-modal').classList.add('is-active');
+        });
+        $('#set-duration-btn').on('click', () => {
+            socket.emit('setDefaultRoundDuration', $('#round-time-input').val());
+            document.getElementById('err-msg').innerText = 'Round Duration Set';
+            document.getElementById('err-modal').classList.add('is-active');
+        });
+        $('#round-time-input').on('keydown', e => {
+            if (e.keyCode === 13) {
                 socket.emit('setDefaultRoundDuration', $('#round-time-input').val());
+                this.blur();
+                document.getElementById('err-msg').innerText = 'Round Duration Set';
+                document.getElementById('err-modal').classList.add('is-active');
             }
         });
 
@@ -422,10 +506,10 @@
             socket.emit('updateLoginSettings', $('#allow-players-check').prop('checked'), $('#yes').prop('checked'));
         });
 
-        $('#error-modal #close-btn').on('click', () => {
+        $('#err-modal #close-btn').on('click', () => {
             $('#err-modal').removeClass('is-active');
         });
-        $('#error-modal #x-btn').on('click', () => {
+        $('#err-modal #x-btn').on('click', () => {
             $('#err-modal').removeClass('is-active');
         });
 
@@ -467,6 +551,10 @@
             });
         };
 
+        $('#box-height-btn').on('click', () => {
+            socket.emit('boxHeight', $('#box-height-input').val());
+        });
+
         $('#csv-file-name').hide();
         $('#csv-file-submit').hide();
         $('#csv-file-input').on('change', function () {
@@ -483,6 +571,85 @@
         $('#csv-file-form').on('submit', function () {
             document.getElementById('csv-file-info').innerHTML = 'Submitted CSV.';
         });
+
+        $('#email-search-input').on('keydown', e => {
+            if (e.keyCode === 13) {
+                this.blur();
+                $('#lookup-content').html('');
+                axios.post('/api/v1/search', { email: $('#email-search-input').val().toLowerCase() }).then(res => {
+                    if (res.data.success) {
+                        if (!res.data.accountFound && res.data.uses) {
+                            console.log('.');
+                            $('#lookup-content').html(`<h1 style="font-size: 2rem;">${res.data.email}</h1>
+                            <div class="columns p-3">
+                                <div class="column">
+                                    <h1 style="font-size: 2rem;"><b>Uses: </b> <span id="uses">${res.data.uses}</span></h1>
+                                </div>
+                                <div class="column">
+                                    <button class="button is-primary is-large" onclick="addUse('${res.data.email}');">Add Use</button>
+                                </div>
+                            </div>`);
+                            return;
+                        }
+                        if (res.data.accountFound) {
+                            inner = `<div class="columns p-3">
+                                                <div class="column">
+                                                    <h1 style="font-size: 2rem;"><b>Uses: </b> <span id="uses">${res.data.uses}</span></h1>
+                                                </div>
+                                                <div class="column"><button class="button is-primary is-large"
+                                                        onclick="addUse('${res.data.email}');">Add Use</button></div>
+                                            </div>`;
+                            // res.data.accounts.forEach(acc => {
+                            for (var acc of res.data.accounts) {
+                                inner += `<div class="columns p-3">
+                                                <div class="column">
+                                                    <ul style='font-size: 1.75rem;'>
+                                                        <li><b>Name: </b><span id="acc-name">${acc.name}</span></li>
+                                                        <li><b>Email: </b><span id="acc-email">${acc.email}</span></li>
+                                                    </ul>
+                                                </div>
+                                                <div class="column">
+                                                    <div class="columns stack">
+                                                        <div class="column"></div>
+                                                        <div class="column"><button class="button is-danger is-large"
+                                                                onclick="banSesh('${acc.sessionId}', this);">Ban</button></div>
+                                                    </div>
+                                                </div>
+                                            </div>`;
+                            };
+                            $('#lookup-content').html(inner);
+                        } else {
+                            $('#lookup-content').html(`<h1 style="color: red; font-size: 2rem;">No Account Found</h1><br><button id="add-use" class="button is-primary is-large" onclick="addUse('${$('#email-search-input').val().toLowerCase()}');">AddUse</button>`);
+                        }
+                    } else {
+                        $('#lookup-content').html('<h1 style="color: red; font-size: 2rem;">Server Error</h1>');
+                    }
+                });
+            }
+        });
+
+        function addUse(email) {
+            axios.post('/api/v1/addUse', { email }).then(res => {
+                if (res.data.success) {
+                    if (res.data.error) {
+                        document.getElementById('err-msg').innerText = res.data.error;
+                        document.getElementById('err-modal').classList.add('is-active');
+                        return;
+                    }
+                    $('#uses').text(res.data.newUses);
+                } else {
+                    document.getElementById('err-msg').innerText = 'Internal Server Error';
+                    document.getElementById('err-modal').classList.add('is-active');
+                }
+            });
+        }
+
+        function banSesh(sid, element) {
+            socket.emit('banPlayer', sid);
+            let rm = element.parentElement.parentElement.parentElement;
+            rm.parentElement.remove(rm);
+        }
+
     </script>
 </body>
 

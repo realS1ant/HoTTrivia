@@ -104,6 +104,8 @@ tbody {
 #main-content-container {
     background-color: #fff;
     padding: 1rem;
+    border-radius: 15px;
+    /* height: 700px; */
 }
 
 #round-info {
