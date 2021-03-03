@@ -93,6 +93,7 @@ router.post('/auth', (req, res, next) => {
 });
 
 router.post('/search', protectedAdmin, (req, res, next) => {
+    //Make sure it doesn't error anymore when no AllowedEmail but there is a user. (log in w/o email checking)
     if (!req.body.email) {
         res.status(200).json({
             success: false
