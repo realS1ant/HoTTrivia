@@ -70,6 +70,7 @@ router.post('/auth', (req, res, next) => {
                 }
             });
         } else {
+            //Make to sure create user DB object here.
             req.session.admin = false;
             req.session.player = true;
             req.session.accountData = { name: req.body.name, email: req.body.email };
