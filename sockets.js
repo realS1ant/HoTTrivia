@@ -139,6 +139,11 @@ io.on('connection', (s) => {
         });
     });
 
+    socket.on('nextRndNum', num => {
+        if (session.admin !== true) return;
+        roundNumber = num;
+    });
+
     socket.on('banPlayer', sid => {
         if (session.admin !== true) return;
         //not sure how to ban from session ID as can't rlly grab session from ID?

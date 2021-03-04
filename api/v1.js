@@ -47,13 +47,8 @@ router.post('/auth', (req, res, next) => {
                         });
                         return;
                     }).catch(r => {
-                        console.log(r);
-                        req.session.admin = false;
-                        req.session.player = true;
-                        req.session.accountData = { name: req.body.name, email: req.body.email };
-                        req.session.status = 'playing';
-                        doc.uses -= 1;
-                        doc.save();
+                        console.log('Failed to create user object in the database. ');
+                        console.error(r);
                         res.status(200).json({
                             success: true,
                             loggedIn: false,
@@ -70,20 +65,33 @@ router.post('/auth', (req, res, next) => {
                 }
             });
         } else {
-            //Make to sure create user DB object here.
-            req.session.admin = false;
-            req.session.player = true;
-            req.session.accountData = { name: req.body.name, email: req.body.email };
-            req.session.status = 'playing';
-            res.status(200).json({
-                success: true,
-                loggedIn: true,
-                redirectTo: '/play',
-                error: false
+            //if not checking emails (let in anyone)
+            User.create({ email: req.body.email, name: req.body.name, sessionId: req.sessionID }).then(() => {
+                req.session.admin = false;
+                req.session.player = true;
+                req.session.accountData = { name: req.body.name, email: req.body.email };
+                req.session.status = 'playing';
+                res.status(200).json({
+                    success: true,
+                    loggedIn: true,
+                    redirectTo: '/play',
+                    error: false
+                });
+                return;
+            }).catch(r => {
+                console.log('Failed to create user object in the database. ');
+                console.error(r);
+                res.status(200).json({
+                    success: true,
+                    loggedIn: false,
+                    error: 'Server error.'
+                });
+                return;
             });
             return;
         }
     } else {
+        //Not allowing any other logins
         res.status(200).json({
             success: true,
             loggedIn: false,
@@ -100,48 +108,53 @@ router.post('/search', protectedAdmin, (req, res, next) => {
         });
         return;
     }
-    let uses = null;
-    AllowedEmail.findOne({ email: req.body.email }).then(doc => {
-        if (doc !== null) {
-            uses = doc.uses;
+    let response = {
+        success: true,
+        email: req.body.email,
+        uses: 0,
+        error: false,
+        accounts: []
+    };
+    /*account = {
+        name,
+        email,
+        sid
+    }*/
+
+    AllowedEmail.findOne({ email: req.body.email }).then(allowedEmailDoc => {
+        if (allowedEmailDoc && typeof (allowedEmailDoc.uses) === 'number') {
+            response.uses = allowedEmailDoc.uses;
         }
 
-        User.find({ email: req.body.email }).then(docs => {
-            // console.log(docs);
-            if (docs === null || docs.length === 0) {
-                if (uses !== null) {
-                    res.status(200).json({
-                        success: true,
-                        uses: uses,
-                        email: req.body.email
-                    });
-                    return;
-                }
-                res.status(200).json({
-                    success: true,
-                    accountFound: false
-                });
-            } else {
-                if (uses === null) {
-                    console.log('weird error, no uses found under AllowedEmail, but an account was found under User?');
-                    return;
-                }
-                let response = {
-                    success: true,
-                    accountFound: true,
-                    uses: uses,
-                    email: req.body.email,
-                    accounts: []
-                };
-                docs.forEach(doc => {
-                    response.accounts.push({
-                        email: doc.email,
-                        name: doc.name,
-                        sessionId: doc.sessionId
-                    });
-                });
+        User.find({ email: req.body.email }).then(users => {
+            if (!users || users.length === 0) {
                 res.status(200).json(response);
+                return;
             }
+
+            users.forEach(doc => {
+                response.accounts.push({
+                    name: doc.name,
+                    email: doc.email,
+                    sid: doc.sessionId
+                });
+            });
+            res.status(200).json(response);
+        }).catch(r => {
+            console.log('Failed to create user object in the database. ');
+            console.error(r);
+            res.status(200).json({
+                success: true,
+                error: 'Server error.'
+            });
+        });
+
+    }).catch(r => {
+        console.log('Failed to create user object in the database. ');
+        console.error(r);
+        res.status(200).json({
+            success: true,
+            error: 'Server error.'
         });
     });
 });

@@ -156,7 +156,7 @@
                                                         Yes
                                                     </label>
                                                     <label class="radio">
-                                                        <input type="radio" name="need-email">
+                                                        <input type="radio" name="need-email" id="no">
                                                         No
                                                     </label>
                                                 </div>
@@ -215,6 +215,34 @@
                                 <div class="card">
                                     <header class="card-header">
                                         <p class="card-header-title has-text-centered">
+                                            Manual Round Number
+                                        </p>
+                                    </header>
+                                    <div class="card-content">
+                                        <div class="columns">
+                                            <div class="column">
+                                                <div class="field">
+                                                    <div class="control has-icons-left">
+                                                        <input id="round-num-input" class="input is-medium"
+                                                            type="number" value="1">
+                                                        <span class="icon is-small is-left"><i
+                                                                class="fas fa-hashtag"></i></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="column">
+                                                <button id="round-num-btn" class="button is-primary is-large">Set
+                                                    Next Round's Number</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column">
+                                <div class="card">
+                                    <header class="card-header">
+                                        <p class="card-header-title has-text-centered">
                                             Email Upload (columns of email,uses)
                                         </p>
                                     </header>
@@ -252,7 +280,7 @@
                                 <div class="card">
                                     <header class="card-header">
                                         <p class="card-header-title has-text-centered">
-                                            Presentation Main Box Height
+                                            Presentation Main Box Height / Chart Height
                                         </p>
                                     </header>
                                     <div class="card-content">
@@ -344,13 +372,13 @@
                                         <h1 class="title blue" id="round-num">Round 0</h1>
                                     </div>
                                     <div class="column is-2">
-                                        <h1 class="title blue" id="time-left">0s</h1>
+                                        <h1 class="title blue" id="time-identifier">0s</h1>
                                     </div>
                                     <div class="column is-5">
                                         <h1 class="title blue" id="players-left">0 Players Left</h1>
                                     </div>
                                 </div>
-
+                                <p>press 'R' to reload table</p><br>
                                 <!-- All the current players listed here: -->
                                 <div class="table-container">
                                     <table class="table is-bordered is-striped is-fullwidth" id="users-table">
@@ -359,7 +387,7 @@
                                                 <th><abbr title="Socket ID">ID</abbr></th>
                                                 <th>Email</th>
                                                 <th>Display Name</th>
-                                                <th><abbr title="Remove">Rm</abbr></th>
+                                                <th><abbr title="Ban">Bn</abbr></th>
                                             </tr>
                                         </thead>
                                         <!-- Stuff is added with js function -->
@@ -403,9 +431,13 @@
             });
         });
 
-        // socket.on('startRound', (num, end) => {
-
-        // });
+        socket.on('startRound', (num, end) => {
+            inRound = true;
+            roundNum = num;
+            document.getElementById('round-num').innerText = `Round ${num}`;
+            roundEnd = moment(end);
+            document.getElementById('time-identifier').style.color = '';
+        });
 
         socket.on('playersLeft', tot => {
             document.getElementById('players-left').innerText = `${tot} Players Left`;
@@ -418,6 +450,20 @@
 
         //request list of all players for table.
         socket.emit('sendPlayers');
+
+        //Update Times
+        setInterval(() => {
+            if (inRound) {
+                // let difference = roundEndTime.getSeconds() - new Date().getSeconds();
+                let difference = roundEnd.diff(new Date(), 'seconds');
+                if (difference <= 0) {
+                    document.getElementById('time-identifier').innerText = `0s`;
+                    inRound = false;
+                    document.getElementById('time-identifier').style.color = 'red';
+                } else document.getElementById('time-identifier').innerText = `${difference}s`;
+            }
+        }, 250);
+
 
         function addToUsersTable(sessionId, email, name) {
             let cell1 = document.createElement('td');
@@ -434,7 +480,6 @@
             tr.append(cell1);
             tr.append(cell2);
             tr.append(cell3);
-
 
             var tableBody = document.getElementById('users-table-body');
             tableBody.append(tr);
@@ -458,16 +503,27 @@
         }
 
         $('#revive-button').on('click', () => {
-            socket.emit('reviveEliminated');
+            if (!inRound) socket.emit('reviveEliminated');
+            else {
+                document.getElementById('err-msg').innerText = 'Still in the round!';
+                document.getElementById('err-modal').classList.add('is-active');
+            }
         });
 
         $('#reveal-button').on('click', () => {
-            socket.emit('sendResults');
+            if (!inRound) socket.emit('sendResults');
+            else {
+                document.getElementById('err-msg').innerText = 'Still in the round!';
+                document.getElementById('err-modal').classList.add('is-active');
+            }
         });
 
-        const newRndBtn = $('#new-round-button');
-        newRndBtn.on('click', () => {
-            socket.emit('startRound');
+        $('#new-round-button').on('click', () => {
+            if (!inRound) socket.emit('startRound');
+            else {
+                document.getElementById('err-msg').innerText = 'Still in the round!';
+                document.getElementById('err-modal').classList.add('is-active');
+            }
         })
 
         $('#5-btn').on('click', () => {
@@ -502,6 +558,15 @@
             }
         });
 
+        function updateLoginSettings() {
+            console.log('updating...')
+            socket.emit('updateLoginSettings', $('#allow-players-check').prop('checked'), $('#yes').prop('checked'));
+        }
+
+        $('#allow-players-check').on('click', updateLoginSettings);
+        $('#yes').on('click', updateLoginSettings);
+        $('#no').on('click', updateLoginSettings);
+
         $('#update-login-btn').on('click', () => {
             socket.emit('updateLoginSettings', $('#allow-players-check').prop('checked'), $('#yes').prop('checked'));
         });
@@ -511,6 +576,10 @@
         });
         $('#err-modal #x-btn').on('click', () => {
             $('#err-modal').removeClass('is-active');
+        });
+
+        $('#round-num-btn').on('click', () => {
+            socket.emit('nextRndNum', ($('#round-num-input').val() - 1));
         });
 
         $('#presentation-controls #pre-game').on('click', () => {
@@ -578,48 +647,68 @@
                 $('#lookup-content').html('');
                 axios.post('/api/v1/search', { email: $('#email-search-input').val().toLowerCase() }).then(res => {
                     if (res.data.success) {
-                        if (!res.data.accountFound && res.data.uses) {
-                            console.log('.');
-                            $('#lookup-content').html(`<h1 style="font-size: 2rem;">${res.data.email}</h1>
-                            <div class="columns p-3">
-                                <div class="column">
-                                    <h1 style="font-size: 2rem;"><b>Uses: </b> <span id="uses">${res.data.uses}</span></h1>
-                                </div>
-                                <div class="column">
-                                    <button class="button is-primary is-large" onclick="addUse('${res.data.email}');">Add Use</button>
-                                </div>
-                            </div>`);
+                        if (res.data.error) {
+                            $('#lookup-content').html(`<h1 class="p-3" style="color: red; font-size: 2rem;">${error}</h1>`);
                             return;
                         }
-                        if (res.data.accountFound) {
-                            inner = `<div class="columns p-3">
-                                                <div class="column">
-                                                    <h1 style="font-size: 2rem;"><b>Uses: </b> <span id="uses">${res.data.uses}</span></h1>
-                                                </div>
-                                                <div class="column"><button class="button is-primary is-large"
-                                                        onclick="addUse('${res.data.email}');">Add Use</button></div>
-                                            </div>`;
-                            // res.data.accounts.forEach(acc => {
+                        if (res.data.uses === 0 && !res.data.accounts) {
+                            //not in either collection
+                            $('#lookup-content').html(` 
+                                <h1 style="font-size: 2rem; color: red;" class="p-3">Email not in system.</h1>
+                                <div class="columns p-3">
+                                 <div class="column">
+                                    <h1 style="font-size: 1.5rem;">${res.data.email}</h1>
+                                 </div>
+                                 <div class="column">
+                                     <button class="button is-primary is-large" onclick="addUse('${res.data.email}');">Add Use</button>
+                                 </div>
+                             </div>
+                            `);
+                            $('#lookup-content').html('<h1 style="color: red; font-size: 2rem;" class="p-3">Email not in System.</h1>');
+                            return;
+                        } else if (res.data.uses >= 1 && !res.data.accounts) {
+                            //No accounts made, but email preset in system.
+                            $('#lookup-content').html(`<h1 style="font-size: 2rem;" class="p-3">${res.data.email}</h1>
+                             <div class="columns p-3">
+                                 <div class="column">
+                                     <h1 style="font-size: 2rem;"><b>Uses: </b> <span id="uses">${res.data.uses}</span></h1>
+                                 </div>
+                                 <div class="column">
+                                     <button class="button is-primary is-large" onclick="addUse('${res.data.email}');">Add Use</button>
+                                 </div>
+                             </div>`);
+                        } else if (res.data.uses === 0 && res.data.accounts != []) {
+                            //No more uses left, but an account is made.
+                            let inner = `<h1 style="font-size: 2rem;" class="p-3">${res.data.email}</h1>
+                             <div class="columns p-3">
+                                 <div class="column">
+                                     <h1 style="font-size: 2rem;"><b>Uses: </b> <span id="uses">${res.data.uses}</span></h1>
+                                 </div>
+                                 <div class="column">
+                                     <button class="button is-primary is-large" onclick="addUse('${res.data.email}');">Add Use</button>
+                                 </div>
+                             </div>`;
+
                             for (var acc of res.data.accounts) {
                                 inner += `<div class="columns p-3">
-                                                <div class="column">
-                                                    <ul style='font-size: 1.75rem;'>
-                                                        <li><b>Name: </b><span id="acc-name">${acc.name}</span></li>
-                                                        <li><b>Email: </b><span id="acc-email">${acc.email}</span></li>
-                                                    </ul>
-                                                </div>
-                                                <div class="column">
-                                                    <div class="columns stack">
-                                                        <div class="column"></div>
-                                                        <div class="column"><button class="button is-danger is-large"
-                                                                onclick="banSesh('${acc.sessionId}', this);">Ban</button></div>
-                                                    </div>
-                                                </div>
-                                            </div>`;
-                            };
+                                                 <div class="column">
+                                                     <ul style='font-size: 1.75rem;'>
+                                                         <li><b>Name: </b><span id="acc-name">${acc.name}</span></li>
+                                                         <li><b>Email: </b><span id="acc-email">${acc.email}</span></li>
+                                                     </ul>
+                                                 </div>
+                                                 <div class="column">
+                                                     <div class="columns stack">
+                                                         <div class="column"></div>
+                                                         <div class="column"><button class="button is-danger is-large"
+                                                                 onclick="banSesh('${acc.sessionId}', this);">Ban</button></div>
+                                                     </div>
+                                                 </div>
+                                             </div>`;
+                            }
                             $('#lookup-content').html(inner);
                         } else {
-                            $('#lookup-content').html(`<h1 style="color: red; font-size: 2rem;">No Account Found</h1><br><button id="add-use" class="button is-primary is-large" onclick="addUse('${$('#email-search-input').val().toLowerCase()}');">AddUse</button>`);
+                            $('#lookup-content').html('<h1 style="color: red; font-size: 2rem;" class="p-3">Internal Error.</h1>');
                         }
                     } else {
                         $('#lookup-content').html('<h1 style="color: red; font-size: 2rem;">Server Error</h1>');

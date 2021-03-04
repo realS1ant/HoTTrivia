@@ -118,7 +118,7 @@ tbody {
 }
 
 #chart-container, #chart-column {
-    height: fit-content;
+    height: 100%;
 }
 
 @media (max-width: 1024px) {
