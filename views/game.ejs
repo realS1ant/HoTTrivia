@@ -192,8 +192,8 @@
             document.getElementById('correct-text').innerText = "You won!";
         });
 
-        socket.on('revive', doerr => {
-            if (doerr) errorMessage('You have been revived!', false);
+        socket.on('revive', () => {
+            errorMessage('You have been revived!', false, false);
             eliminated = false;
             setView('waiting');
         });

@@ -68,6 +68,7 @@ io.on('connection', (s) => {
     if (socket.request.session.admin === true) {
         adminSockets.push(socket);
         socket.emit('currentInfo', roundNumber, roundEnd);
+        socket.emit('playerCount', playersLeft);
     }
 
     if (inRound) io.emit('startRound', roundNumber, roundEnd);
@@ -188,7 +189,7 @@ io.on('connection', (s) => {
                 let sess = getSocketById(sid).request.session;
                 sess.status = 'playing';
                 store.set(sid, sess, err => { if (err) console.error(err); });
-                getSocketById(sid).emit('revive', false)
+                getSocketById(sid).emit('revive', false);
             });
         }
 
@@ -252,6 +253,12 @@ io.on('connection', (s) => {
             return;
         }
 
+        if (view === 'pre-game') {
+            adminSockets.forEach(a => {
+                a.emit('playerCount', playersLeft);
+            });
+        }
+
         presentView = view;
         adminSockets.forEach(sock => {
             sock.emit('presentView', view);
@@ -278,12 +285,14 @@ io.on('connection', (s) => {
 //Send out votes to admins.
 setInterval(() => {
     if (checkInRound()) {
-        // let difference = roundEndTime.getSeconds() - new Date().getSeconds();
-        adminSockets.forEach(s => {
-            s.emit('updateVotes', newHeadsVotes, newTailsVotes);
+        if (newHeadsVotes + newTailsVotes > 0) {
+            adminSockets.forEach(s => {
+                s.emit('updateVotes', newHeadsVotes, newTailsVotes);
+            });
             newHeadsVotes = 0;
             newTailsVotes = 0;
-        })
+        }
+
     }
 }, 1000);
 

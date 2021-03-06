@@ -28,7 +28,8 @@ router.post('/auth', (req, res, next) => {
     }
 
     if (global.globalAllowLogins === true) {
-        if (global.globalCheckEmails === true) {
+        //if (global.globalCheckEmails === true) { iSNT WORKING INSIDE OF PRODUCTION ENVIRONMENT (I DONT HAVE MEANS OF TESTING EITHER)
+        if (false) {//will allow any emails in.
             /* if allowed to join */
             AllowedEmail.findOne({ email: req.body.email }).then(doc => {
                 if (doc && typeof doc.uses === 'number' && doc.uses >= 1) {

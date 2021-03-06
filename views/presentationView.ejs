@@ -182,11 +182,20 @@
         });
 
         socket.on('updateVotes', (newHeads, newTails) => {
+            updateVotes(newHeads, newTails);
+        });
+
+        function updateVotes(newHeads, newTails) {
+            if (+votesElement.innerText === 0) {
+                myChart.data.datasets[0].data[0] = 0;
+                myChart.data.datasets[0].data[1] = 0;
+            }
             votesElement.innerText = +votesElement.innerText + (newHeads + newTails);
+
             myChart.data.datasets[0].data[0] += newTails;
             myChart.data.datasets[0].data[1] += newHeads;
             myChart.update();
-        });
+        }
 
         socket.on('presentView', view => {
             //game-over, pre-game, or playing
