@@ -122,11 +122,8 @@
                                                     class="button is-primary is-large">Pre-Game</button>
                                             </div>
                                             <div class="column">
-                                                <button class="button is-primary is-large" id="playing">Playing</button>
-                                            </div>
-                                            <div class="column">
-                                                <button id="game-over" class="button is-danger is-large">Game
-                                                    Over</button>
+                                                <button class="button is-primary is-large" id="playing"
+                                                    disabled>Playing</button>
                                             </div>
                                         </div>
                                     </div>
@@ -160,10 +157,6 @@
                                                         No
                                                     </label>
                                                 </div>
-                                            </div>
-                                            <div class="column">
-                                                <button id="update-login-btn" class="button is-primary is-large">Update
-                                                    Login Control</button>
                                             </div>
                                         </div>
                                     </div>
@@ -416,19 +409,28 @@
         let roundEnd = 0;
         let playersLeft = 0;
 
-        socket.on('newPlayer', (sessionId, email, name) => {
-            addToUsersTable(sessionId, email, name);
+        socket.on('newPlayer', (playersLeftt, sid, email, name) => {
+            addToUsersTable(sid, email, name);
+            playersLeft = playersLeftt;
         });
 
-        socket.on('removePlayer', (sessionId) => {
+        socket.on('removePlayer', (pleft, sessionId) => {
             deleteByID(sessionId);
+            playersLeft = pleft;
         });
 
-        socket.on('allPlayers', (players) => {
+        socket.on('allPlayers', (players, pLeft) => {
             $('#users-table-body').children().remove();
+            playersLeft = pLeft;
+            document.getElementById('players-left').innerText = `${pLeft} Players Left`;
             players.forEach(player => {
                 if (!tableHas(player.sessionId)) addToUsersTable(player.sessionId, player.email, player.name);
             });
+        });
+
+
+        socket.on('allPlayersSid', lastRoundPlayers => {
+            $('#users-table-body').children('tr')
         });
 
         socket.on('startRound', (num, end) => {
@@ -440,6 +442,7 @@
         });
 
         socket.on('playersLeft', tot => {
+            playersLeft = tot;
             document.getElementById('players-left').innerText = `${tot} Players Left`;
         });
 
@@ -466,6 +469,7 @@
 
 
         function addToUsersTable(sessionId, email, name) {
+            // console.log(`sid: ${sessionId} email: ${email}, name: ${name}`);
             let cell1 = document.createElement('td');
             let cell2 = document.createElement('td');
             let cell3 = document.createElement('td')
@@ -491,16 +495,22 @@
 
         function deleteUser(button) {
             deleteByID(button.parentElement.parentElement.firstChild.firstChild.title);
+            socket.emit('banPlayer', button.parentElement.parentElement.firstChild.firstChild.title);
         }
 
         function deleteByID(sessionId) {
-            socket.emit('banPlayer', sessionId);
             $("span[title='" + sessionId + "']").parents('td').parents('tr').remove();
         }
 
         function tableHas(email) {
-            return $('#users-table td:contains(' + email + ')').length > 0;
+            return $('#users-table span[title="' + email + '"]').length > 0;
         }
+
+        document.addEventListener('keypress', e => {
+            if (e.keyCode === 114) {
+                socket.emit('sendPlayers');
+            }
+        });
 
         $('#revive-button').on('click', () => {
             if (!inRound) socket.emit('reviveEliminated');
@@ -558,9 +568,10 @@
             }
         });
 
-        function updateLoginSettings() {
-            console.log('updating...')
+        function updateLoginSettings() { //This is sometimes calling on page load, no idea why
             socket.emit('updateLoginSettings', $('#allow-players-check').prop('checked'), $('#yes').prop('checked'));
+            $('#err-modal #err-msg').text('Updated Login Settings');
+            $('#err-modal').addClass('is-active');
         }
 
         $('#allow-players-check').on('click', updateLoginSettings);

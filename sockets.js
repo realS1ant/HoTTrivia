@@ -2,6 +2,7 @@ const { io, store } = require('./app');
 const moment = require('moment');
 const { Socket } = require('socket.io');
 let defaultTime = 10;
+let playerThreshold = 15; //Number of players when it starts saving so it can revive if everyone votes the wrong answer and gets out.
 
 var correct = '';
 var roundNumber = 0;
@@ -11,6 +12,10 @@ var adminSockets = [];
 var newHeadsVotes = 0;
 var newTailsVotes = 0;
 var presentView = '';
+var playersLeft = 0;
+var lastRoundPlayers = [];
+let preGame = true;
+var gameOver = false;
 
 //Socket code
 io.on('connection', (s) => {
@@ -26,14 +31,39 @@ io.on('connection', (s) => {
     session.lastSocketId = socket.id;
     store.set(session.id, session, err => { if (err) console.error(err); });
 
-    if (session.status === 'eliminated') socket.emit('eliminate');
-    else if (session.status === 'playing');
+    if (session.status === 'eliminated') {
+        socket.emit('eliminate');
+        if (preGame) playersLeft++;
+    }
+    else if (session.status === 'playing') {
+        playersLeft++;
+        adminSockets.forEach(a => {
+            a.emit('newPlayer', playersLeft, session.id, session.accountData.email, session.accountData.email);
+        });
+    }
     else if (session.admin === true);
     else {
         console.log('Someone joined without a (recognized) status! Just making them a player');
         session.status = 'playing';
         store.set(session.id, session, err => { if (err) console.error(err); });
+        playersLeft++;
+        adminSockets.forEach(a => {
+            a.emit('newPlayer', playersLeft, session.id, session.accountData.email, session.accountData.email);
+        });
     }
+    if (preGame) {
+        adminSockets.forEach(a => {
+            a.emit('playerCount', playersLeft);
+        });
+    }
+
+    socket.on('disconnect', () => {
+        if (session.admin) return;
+        playersLeft--;
+        adminSockets.forEach(a => {
+            a.emit('removePlayer', playersLeft, session.id);
+        });
+    });
 
     if (socket.request.session.admin === true) {
         adminSockets.push(socket);
@@ -104,19 +134,20 @@ io.on('connection', (s) => {
                 socket.emit('error', 'Round already in progress.');
                 return;
             }
-            correct = Math.floor(Math.random() * 2) === 1 ? 'heads' : 'tails';
-            startRound(++roundNumber, defaultTime, correct);
+            startRound();
         }
     });
     socket.on('sendPlayers', () => {
         if (session.admin === true) {
-            const players = [];
+            let players = [];
+            let pLeft = 0;
             io.sockets.sockets.forEach(sock => {
                 if (sock.request.session.player === true) {
+                    if (sock.request.session.status === 'playing') pLeft++;
                     players.push({ sessionId: sock.request.session.id, email: sock.request.session.accountData.email, name: sock.request.session.accountData.name });
                 }
             });
-            socket.emit('allPlayers', players);
+            socket.emit('allPlayers', players, pLeft);
         }
     });
     socket.on('sendResults', () => {
@@ -126,15 +157,53 @@ io.on('connection', (s) => {
             return;
         }
         if (moment(new Date()).isBefore(roundEnd)) return;
+
+        playersLeft = 0;
+        let player = [];
+        io.sockets.sockets.forEach(sock => {
+            if (sock.request.session.status === 'playing') {
+                playersLeft++;
+                player = { name: sock.request.session.accountData.name, sid: sock.id };
+            }
+        });
         io.sockets.emit('correctAnswer', correct);
+        if (playersLeft === 1) {
+            //one person won.
+            // console.log(player);
+            // console.log(getSocketById(player.sid));
+            // console.log(io.sockets.sockets); Isn't working for some very weird reason????? (may have a hard time veryifying winner, could ask for email and see if it matches name.)
+            getSocketById(player.sid).emit('won');
+            io.sockets.sockets.forEach(sock => {
+                if (sock.request.session.admin === true) {
+                    sock.emit('winner', player.name);
+                    sock.emit('presentView', 'game-over');
+                }
+            });
+            presentView = 'game-over';
+            gameOver = true;
+            console.log(`Set present view to: game-over`);
+        } else if (playersLeft === 0) {
+            console.log('everyone got out.');
+            lastRoundPlayers.forEach(sid => {
+                let sess = getSocketById(sid).request.session;
+                sess.status = 'playing';
+                store.set(sid, sess, err => { if (err) console.error(err); });
+                getSocketById(sid).emit('revive', false)
+            });
+        }
+
+
+        socket.emit('playersLeft', playersLeft);
+        if (playersLeft > playerThreshold) lastRoundPlayers = [];
     });
     socket.on('reviveEliminated', () => {
         if (session.admin !== true) return;
         io.sockets.sockets.forEach(sock => {
-            if (sock.request.session.status === 'eliminated') {
-                sock.emit('revive');
-                sock.request.session.status = 'playing';
-                store.set(session.id, session, err => { if (err) console.error(err); });
+            let sess = sock.request.session;
+            if (sess.status === 'eliminated') {
+                sock.emit('revive', true);
+                sess.status = 'playing';
+                store.set(sess.id, sess, err => { if (err) console.error(err); });
             }
         });
     });
@@ -182,36 +251,12 @@ io.on('connection', (s) => {
             socket.emit('error', 'Currently in a round!');
             return;
         }
-        if (view === 'game-over') {
-            let winners = [];
-            io.sockets.sockets.forEach(sock => {
-                if (sock.request.session.eliminated === false && sock.request.session.player === true) winners.push(sock.request.session.accountData.name);
-            });
-            io.sockets.sockets.forEach(sock => {
-                if (sock.request.session.admin === true) sock.emit('winners', winners);
-            });
-        }
 
         presentView = view;
-        socket.emit('presentView', view);
+        adminSockets.forEach(sock => {
+            sock.emit('presentView', view);
+        });
         console.log(`Set present view to: ${view}`);
-    });
-
-    socket.on('presentView', () => {
-        if (session.admin !== true) return;
-        if (['game-over', 'pre-game', 'playing'].includes(view)) {
-            socket.emit('presentView', presentView);
-            return;
-        } else {
-            if (!inRound) {
-                presentView = 'pre-game';
-                socket.emit('presentView', 'pre-game');
-            } else {
-                presentView = 'playing';
-                socket.emit('presentView', 'playing');
-            }
-
-        }
     });
 
     socket.on('boxHeight', h => {
@@ -240,22 +285,26 @@ setInterval(() => {
             newTailsVotes = 0;
         })
     }
-}, 250);
+}, 1000);
 
-function startRound(roundNum, duration, correctAnswer) {
-    var date = moment(new Date()).add(duration, 's').toDate();
-    roundNumber = roundNum;
-    roundEnd = date;
+function startRound() {
+    if (gameOver) {
+        gameOver = false;
+        roundNumber = 0;
+    }
+    roundNumber++;
+    roundEnd = moment(new Date()).add(defaultTime, 's').toDate();
     inRound = true;
-    correct = correctAnswer;
-    io.emit('startRound', roundNum, date);
-    let total = 0;
-    io.sockets.sockets.forEach(s => {
-        if (s.request.session.player === true && s.request.session.status === 'playing') total++;
+    correct = Math.floor(Math.random() * 2) === 1 ? 'heads' : 'tails';
+    io.emit('startRound', roundNumber, roundEnd);
+    lastRoundPlayers = [];
+    io.sockets.sockets.forEach(sock => {
+        if (sock.request.session.player === true && sock.request.session.status === 'playing') lastRoundPlayers.push(sock.id);
     });
-    io.sockets.sockets.forEach(s => {
-        if (s.request.session.admin === true) s.emit('playersLeft', total);
+    adminSockets.forEach(sock => {
+        sock.emit('playersLeft', lastRoundPlayers.length);
     });
+    if (lastRoundPlayers.length >= playerThreshold) lastRoundPlayers = []; //Save memory, couldn't think of a better way to do this and running out of time.
 }
 
 function checkInRound() {
@@ -265,7 +314,7 @@ function checkInRound() {
             awaitingResults = true;
             return false;
         } else return true;
-    } else return false;
+    } else return inRound;
 }
 
 //emit 'eliminate' to show the eliminated view.
@@ -280,7 +329,7 @@ function checkInRound() {
  * @returns {Socket}
  */
 function getSocketById(id) {
-    io.sockets.sockets[id];
+    return io.sockets.sockets.get(id);
 }
 
 /**

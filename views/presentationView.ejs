@@ -17,6 +17,7 @@
             }
         </style>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+        <link rel='stylesheet' href='../big-spinner.css' />
 </head>
 
 <body>
@@ -79,18 +80,52 @@
                     </span>
                     <span id="waiting">
                         <!-- Spinner -->
-
+                        <div class="waiting-spinner">
+                            <div class="lds-roller">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+                        </div>
                     </span>
-                    <span id="results">
-                        <!-- Big Circle with  -->
-                        <h1 class="title is-1">Cirlce with result.</h1>
-                    </span>
+                    <div id="results">
+                        <div class="circle">
+                            <p id='result'>Heads</p>
+                        </div>
+                    </div>
                 </span>
                 <span id="pre-game">
-
+                    <div class="box" id="round-info">
+                        <nav class="level">
+                            <div class="level-item has-text-centered">
+                                <div>
+                                    <p class="title is-3" style="font-size: 4rem;">Players</p>
+                                    <p class="title is-1" id="playerCount" style="font-size: 5rem;">10</p>
+                                </div>
+                            </div>
+                        </nav>
+                    </div>
+                    <div class="waiting-spinner">
+                        <div class="lds-roller">
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                        </div>
+                    </div>
                 </span>
                 <span id="game-over">
-
+                    <h1 class="title is-1" style="font-size: 5rem;">We have a winner:<br><span id='winner'>Winner
+                            Name</span></h1>
                 </span>
             </div>
         </div>
@@ -115,7 +150,7 @@
 
         let inRound = false;
         let endTime = 0;
-        let winners = [];
+        let winner = 'None';
 
         var updateCountdown = setInterval(() => {
             if (inRound) {
@@ -135,6 +170,10 @@
             roundNumElement.innerText = num;
             inRound = true;
             endTime = moment(new Date(endDate));
+            votesElement.innerText = 0;
+            myChart.data.datasets[0].data[0] = 1;
+            myChart.data.datasets[0].data[1] = 1;
+            myChart.update();
         });
 
         socket.on('correctAnswer', correct => {
@@ -151,17 +190,28 @@
 
         socket.on('presentView', view => {
             //game-over, pre-game, or playing
+            console.log(view);
             setView(view);
         });
 
-        socket.on('winners', w => {
+        socket.on('innerPresentView', view => {
+            //game-over, pre-game, or playing
+            setInnerView(view);
+        });
+
+        socket.on('winner', w => {
             //Array of all final users.
-            winners = w;
+            winner = w;
+            $('#winner').text(w);
             setView('game-over');
         });
 
         socket.on('boxHeight', h => {
             setBoxHeight(h);
+        });
+
+        socket.on('playerCount', tot => {
+            $('#playerCount').text(tot);
         });
 
         function setView(v) {
@@ -201,7 +251,7 @@
             data: {
                 datasets: [{
                     //Tails, Heads
-                    data: [1, 1],
+                    data: [0, 0],
                     backgroundColor: [
                         '#DF6311', //Tails
                         '#209CEE' //Heads
